@@ -28,9 +28,6 @@ def parse_args():
         The arguments from the command line.
     """
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('--config_file', type=str,
-                        help='The configuration file to read the API key and other settings.',
-                        required=True)
     parser.add_argument('--created_before', type=str, default=None,
                         help='The date string in the format YYYY-MM-DD\'T\'HH:MM:SS\'Z\''
                         'e.g: 2024-01-01T08:30:00Z to filter reports created before this date.')
@@ -281,7 +278,6 @@ def parse_json(report_json):
         else:
             variant_type = "N/A"
             print(finding)
-            print(variant_type)
             raise ValueError("Unknown variant type")
         # extract variant information for SNV
         if variant_type == "SNV":
@@ -414,6 +410,7 @@ def main():
     -------
     None
     """
+    args = parse_args()
     # Constants, TODO: put this in a function and return the values
     # read in API key from a file or environment variable
     dotenv.load_dotenv()
@@ -430,22 +427,20 @@ def main():
     report_pattern = rf'{report_pattern}'
     # Testing pattern
     report_pattern = r'^Created report for case ID'  # r'\bREPORTS_SIGNED_OFF\b'
-
-    headers = {
-        'accept': '*/*',
-        'Authorization': f'ApiKey {api_key}',
-        'X-ILMN-Domain': 'eval-uki',
-        'X-ILMN-Workgroup': f'{x_illumina_workgroup}',
-    }
+    if args.override_report_pattern:
+        report_pattern = args.override_report_pattern
+    # Setup API headers
+    headers = setup_api(base_url, api_key, x_illumina_workgroup)
 
     # Execute script
     logging.info("Script execution started.")
     audit_logs = get_audit_logs(base_url, headers,
                                 case_status_updated_event,
                                 audit_log_endpoint,
-                                created_after="2024-10-30T08:30:00Z"
+                                created_after=args.created_after,
+                                created_before=args.created_before
                                 )
-    print(audit_logs)
+
     if audit_logs:
         logging.info("Audit logs fetched successfully.")
         process_reports_and_generate_excel(
