@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('--created_after', type=str, default=None,
                         help='The date string in the format YYYY-MM-DD\'T\'HH:MM:SS\'Z\''
                         'e.g: 2024-01-01T08:30:00Z to filter reports created after this date.')
-    parser.add_argument('--override_report_pattern', type=str, default='REPORTS_SIGNED_OFF',
+    parser.add_argument('--override_report_pattern', type=str, default=None,
                         help='The regex pattern to match in the report text.')
     args = parser.parse_args()
     return args
@@ -183,7 +183,7 @@ def process_reports_and_generate_excel(audit_logs,
     Examples
     --------
     >>> logs = get_audit_logs("https://api.ici.example.com", headers, "case.status.updated")
-    >>> process_reports_and_generate_excel(logs, "https://api.ici.example.com", headers, "your_regex_pattern_here")
+    >>> process_reports_and_generate_excel(logs, "https://api.ici.example.com", headers, "regex_pattern")
     """
     logging.info("Processing audit logs and fetching reports.")
     matched_reports = []
@@ -194,7 +194,7 @@ def process_reports_and_generate_excel(audit_logs,
         # Assuming report text is in the 'message' field
         report_text = log.get("message", "")
 
-        if re.search(report_pattern, report_text):
+        if re.search(report_pattern, report_text, re.IGNORECASE):
             logging.debug(
                 "Report text matched pattern for case ID: %s", case_id)
             report_json = get_report(base_url, headers, case_id)
@@ -202,9 +202,12 @@ def process_reports_and_generate_excel(audit_logs,
                 matched_reports.append(report_json)
         else:
             logging.debug("No match for case ID: %s", case_id)
+            logging.debug("Report text: %s", report_text)
+            logging.debug("Pattern: %s", report_pattern)
 
     if matched_reports:
         logging.info("Generating Excel file from matched reports.")
+
         for report in matched_reports:
             sample_id, analyst_info, snvs_variants_info, cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = parse_json(
                 report)
@@ -426,7 +429,7 @@ def main():
     report_pattern = os.getenv("STATUS_STRING")
     report_pattern = rf'{report_pattern}'
     # Testing pattern
-    report_pattern = r'^Created report for case ID'  # r'\bREPORTS_SIGNED_OFF\b'
+    # report_pattern = r'^Created report for case ID'
     if args.override_report_pattern:
         report_pattern = args.override_report_pattern
     # Setup API headers
