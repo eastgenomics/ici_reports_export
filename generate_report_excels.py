@@ -209,10 +209,10 @@ def process_reports_and_generate_excel(audit_logs,
         logging.info("Generating Excel file from matched reports.")
 
         for report in matched_reports:
-            sample_id, analyst_info, snvs_variants_info, cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = parse_json(
+            sample_id, case_info, snvs_variants_info, cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = parse_json(
                 report)
             json_extract_to_excel(
-                sample_id, analyst_info, snvs_variants_info,
+                sample_id, case_info, snvs_variants_info,
                 cnvs_variants_info, indels_variants_info,
                 tmb_msi_variants_info
             )
@@ -233,8 +233,9 @@ def parse_json(report_json):
     -------
     sample_id : str
         The sample ID for the report.
-    analyst_info : dict
-        A dictionary containing analyst information.
+    case_info : dict
+        A dictionary containing case specific information,
+        i.e. analyst information.
     snvs_variants_info : list
         A list of dictionaries containing variant information for SNV.
     cnvs_variants_info : list
@@ -246,18 +247,19 @@ def parse_json(report_json):
     """
     sample_id = report_json.get("displayId", "N/A")
     # Extract analyst information
-    analyst_info = {
+    case_info = {
         "Primary Analyst": None,
         "First Checker": None,
         "Second Checker": None
     }
+
     for config_data in report_json.get("customMetadata", {}).get("configData", []):
         if config_data["name"] == "Primary analyst":
-            analyst_info["Primary Analyst"] = config_data["value"]
+            case_info["Primary Analyst"] = config_data["value"]
         elif config_data["name"] == "First Checker":
-            analyst_info["First Checker"] = config_data["value"]
+            case_info["First Checker"] = config_data["value"]
         elif config_data["name"] == "Second checker":
-            analyst_info["Second Checker"] = config_data["value"]
+            case_info["Second Checker"] = config_data["value"]
 
     # Extract variant information
     snvs_variants_info = []
@@ -351,7 +353,7 @@ def parse_json(report_json):
 
     # Print or return the extracted information
     print("Analyst Information:")
-    for key, value in analyst_info.items():
+    for key, value in case_info.items():
         print(f"{key}: {value}")
 
     print("\nVariant Information:")
@@ -364,11 +366,11 @@ def parse_json(report_json):
     for variant in tmb_msi_variants_info:
         print(variant)
 
-    return sample_id, analyst_info, snvs_variants_info, \
+    return sample_id, case_info, snvs_variants_info, \
         cnvs_variants_info, indels_variants_info, tmb_msi_variants_info
 
 
-def json_extract_to_excel(sample_id, analyst_info,
+def json_extract_to_excel(sample_id, case_info,
                           snvs_variants_info, cnvs_variants_info,
                           indels_variants_info, tmb_msi_variants_info
                           ):
@@ -379,14 +381,14 @@ def json_extract_to_excel(sample_id, analyst_info,
     ----------
     sample_id : str
         The sample ID for the report.
-    analyst_info : dict
+    case_info : dict
         A dictionary containing analyst information.
     variants_info : list
         A list of dictionaries containing variant information
         for SNV, CNV, or Indel.
     """
     # Create a Pandas DataFrame from the extracted information
-    analyst_info_df = pd.DataFrame([analyst_info])
+    case_info_df = pd.DataFrame([case_info])
     snvs_variants_info_df = pd.DataFrame(snvs_variants_info)
     cnvs_variants_info_df = pd.DataFrame(cnvs_variants_info)
     indels_variants_info_df = pd.DataFrame(indels_variants_info)
@@ -401,7 +403,7 @@ def json_extract_to_excel(sample_id, analyst_info,
             writer, sheet_name="Indels", index=False)
         tmb_msi_variants_info_df.to_excel(
             writer, sheet_name="TMB_MSI", index=False)
-        analyst_info_df.to_excel(
+        case_info_df.to_excel(
             writer, sheet_name="Analyst Information", index=False)
 
 
@@ -428,8 +430,7 @@ def main():
     # The pattern to match in the report text
     report_pattern = os.getenv("STATUS_STRING")
     report_pattern = rf'{report_pattern}'
-    # Testing pattern
-    # report_pattern = r'^Created report for case ID'
+
     if args.override_report_pattern:
         report_pattern = args.override_report_pattern
     # Setup API headers
