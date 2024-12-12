@@ -5,6 +5,7 @@ import pandas as pd
 import logging
 import dotenv
 import os
+import datetime as dt
 
 # Setup logging
 logging.basicConfig(
@@ -37,6 +38,36 @@ def parse_args():
     parser.add_argument('--override_report_pattern', type=str, default=None,
                         help='The regex pattern to match in the report text.')
     args = parser.parse_args()
+    # Validate inputs
+    if args.created_before == "" or args.created_after == "":
+        logging.error("Invalid date format for created_before or created_after.")
+        raise SystemExit
+    if args.created_before and args.created_after:
+        if args.created_before <= args.created_after:
+            logging.error("created_before date should be greater than created_after date.")
+            raise SystemExit
+    if args.created_before:
+        try:
+            # Check if the date is in the correct format
+            # Format YYYY-MM-DD'T'HH:MM:SS'Z'
+            if args.created_before == "":
+                logging.error("Invalid date format for created_before: %s", args.created_before)
+                raise SystemExit
+            dt.datetime.strptime(args.created_before, "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            logging.error("Invalid date format for created_before: %s", args.created_before)
+            raise SystemExit
+    if args.created_after:
+        try:
+            # Check if the date is in the correct format
+            # Format YYYY-MM-DD'T'HH:MM:SS'Z'
+            if args.created_after == "":
+                logging.error("Invalid date format for created_before: %s", args.created_before)
+                raise SystemExit
+            dt.datetime.strptime(args.created_after, "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            logging.error("Invalid date format for created_after: %s", args.created_after)
+            raise SystemExit
     return args
 
 
@@ -396,7 +427,7 @@ def json_extract_to_excel(sample_id, case_info,
     # Write the extracted information to an Excel file
     with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx") as writer:
         snvs_variants_info_df.to_excel(
-            writer, sheet_name="SNVs", index=False)
+            writer, sheet_name="Small_Variants", index=False)
         cnvs_variants_info_df.to_excel(
             writer, sheet_name="CNVs", index=False)
         indels_variants_info_df.to_excel(
