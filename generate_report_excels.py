@@ -28,15 +28,15 @@ def parse_args():
     args : argparse.Namespace
         The arguments from the command line.
     """
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Determine runtime mode and other parameters.')
+    parser.add_argument('--mode', type=str, choices=['manual', 'cron'], required=True,
+                        help='Runtime mode: "manual" or "cron".')
     parser.add_argument('--created_before', type=str, default=None,
                         help='The date string in the format YYYY-MM-DD\'T\'HH:MM:SS\'Z\''
-                        'e.g: 2024-01-01T08:30:00Z to filter reports created before this date.')
+                        'e.g: 2024-01-01T08:30:00Z to filter reports created before this date. Only allowed in manual mode.')
     parser.add_argument('--created_after', type=str, default=None,
                         help='The date string in the format YYYY-MM-DD\'T\'HH:MM:SS\'Z\''
-                        'e.g: 2024-01-01T08:30:00Z to filter reports created after this date.')
-    parser.add_argument('--override_report_pattern', type=str, default=None,
-                        help='The regex pattern to match in the report text.')
+                        'e.g: 2024-01-01T08:30:00Z to filter reports created after this date. Only allowed in manual mode.')
     args = parser.parse_args()
     # Validate inputs
     if args.created_before == "" or args.created_after == "":
@@ -69,6 +69,42 @@ def parse_args():
             logging.error("Invalid date format for created_after: %s", args.created_after)
             raise SystemExit
     return args
+
+
+def log_start_time():
+    """
+    Log the start time of the script execution and store it in a file.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the previous start time and the current start time.
+    """
+    start_time_file = 'script_start_time.log'
+    current_start_time = dt.datetime.now().isoformat()
+
+    # Read the previous start time from the file
+    if os.path.exists(start_time_file):
+        with open(start_time_file, 'r') as file:
+            previous_start_time = file.read().strip()
+    else:
+        previous_start_time = None
+        raise RuntimeError("Script start time file not found. Required to run the script.")
+
+    # Validate the previous start time
+    if previous_start_time:
+        try:
+            dt.datetime.fromisoformat(previous_start_time)
+        except ValueError:
+            logging.warning("Invalid previous start time format in the log file.")
+            previous_start_time = None
+
+    # Write the current start time to the file
+    with open(start_time_file, 'w') as file:
+        file.write(current_start_time)
+
+    logging.info("Script start time recorded: %s", current_start_time)
+    return previous_start_time, current_start_time
 
 
 def setup_api(base_url, api_key, x_illumina_workgroup):
@@ -224,18 +260,19 @@ def process_reports_and_generate_excel(audit_logs,
         print(case_id)
         # Assuming report text is in the 'message' field
         report_text = log.get("message", "")
-
+        print(report_pattern)
         if re.search(report_pattern, report_text, re.IGNORECASE):
             logging.debug(
                 "Report text matched pattern for case ID: %s", case_id)
             report_json = get_report(base_url, headers, case_id)
+            print(report_json)
             if report_json:
                 matched_reports.append(report_json)
         else:
             logging.debug("No match for case ID: %s", case_id)
             logging.debug("Report text: %s", report_text)
             logging.debug("Pattern: %s", report_pattern)
-
+    print(matched_reports)
     if matched_reports:
         logging.info("Generating Excel file from matched reports.")
 
@@ -349,19 +386,20 @@ def parse_json(report_json):
 
         # extract variant information for CNV
         elif variant_type == "CNV":
-            fold_change = next((m.get("value").split(": ")[1] for m in finding.get(
-                "metrics", []) if "Fold change" in m.get("value", "")), "N/A")
-            gene = finding.get("name", "N/A")
-            transcript = "Unavailable"
-            pathogenicity = ", ".join(
-                [a.get("actionabilityName", "N/A") for a in finding.get("actionabilities", [])])
-            variant_info = {
-                "Gene": gene,
-                "fold_change": fold_change,
-                "Transcript": transcript,
-                "Pathogenicity": pathogenicity,
-            }
-            cnvs_variants_info.append(variant_info)
+            # fold_change = next((m.get("value").split(": ")[1] for m in finding.get(
+            #     "metrics", []) if "Fold change" in m.get("value", "")), "N/A")
+            # gene = finding.get("name", "N/A")
+            # transcript = "Unavailable"
+            # pathogenicity = ", ".join(
+            #     [a.get("actionabilityName", "N/A") for a in finding.get("actionabilities", [])])
+            # variant_info = {
+            #     "Gene": gene,
+            #     "fold_change": fold_change,
+            #     "Transcript": transcript,
+            #     "Pathogenicity": pathogenicity,
+            # }
+            # cnvs_variants_info.append(variant_info)
+            pass
         elif variant_type == "Indel":
             print("Indel")
             exit()
@@ -382,6 +420,26 @@ def parse_json(report_json):
             print(finding)
             exit()
 
+    # Different logic for extracting CNV information
+    report = report_json.get("testDefinition", {}).get("reports", {})[0]
+    variants = report.get("reportDetails", {}).get("variants", [])
+    for variant in variants:
+        variant_type = variant.get("variantType", "Field not found")
+        if "Copy Number Loss" in variant_type or "Copy Number Gain" in variant_type:
+            fold_change = variant.get("foldChange", "N/A")
+            gene = finding.get("gene", "N/A")
+            transcript = variant.get("transcript", "N/A")
+            for actionability in variant.get("actionabilities", []):
+                pathogenicity_list.append(actionability.get("actionabilityName", "N/A"))
+            pathogenicity_list = unique(pathogenicity_list) if pathogenicity_list else ["N/A"]
+            pathogenicity = ", ".join(pathogenicity_list)
+            variant_info = {
+                "Gene": gene,
+                "fold_change": fold_change,
+                "Transcript": transcript,
+                "Pathogenicity": pathogenicity,
+            }
+            cnvs_variants_info.append(variant_info)
     # Print or return the extracted information
     print("Analyst Information:")
     for key, value in case_info.items():
@@ -437,54 +495,50 @@ def json_extract_to_excel(sample_id, case_info,
         case_info_df.to_excel(
             writer, sheet_name="Analyst Information", index=False)
 
-
 def main():
     """
     Main function to initialize constants and execute the script.
-
     Returns
     -------
     None
     """
     args = parse_args()
-    # Constants, TODO: put this in a function and return the values
-    # read in API key from a file or environment variable
+    if args.mode == 'manual':
+        args = parse_args()
+        created_before = args.created_before
+        created_after = args.created_after
+    elif args.mode == 'cron':
+        previous_start_time, current_start_time = log_start_time()
+        created_before = current_start_time
+        created_after = previous_start_time
+
+
+    # Get environment variables
     dotenv.load_dotenv()
     base_url = os.getenv("ICI_BASE_URL")
     api_key = os.getenv("ICI_API_KEY")
     audit_log_endpoint = os.getenv("ICI_AUDIT_LOG_ENDPOINT")
-
-    # Example event name for case status updates
     case_status_updated_event = os.getenv("ICI_CASE_STATUS_UPDATED_EVENT")
     x_illumina_workgroup = os.getenv("X_ILMN_WORKGROUP")
-
-    # The pattern to match in the report text
     report_pattern = os.getenv("STATUS_STRING")
     report_pattern = rf'{report_pattern}'
 
-    if args.override_report_pattern:
-        report_pattern = args.override_report_pattern
     # Setup API headers
     headers = setup_api(base_url, api_key, x_illumina_workgroup)
-
     # Execute script
     logging.info("Script execution started.")
     audit_logs = get_audit_logs(base_url, headers,
                                 case_status_updated_event,
                                 audit_log_endpoint,
-                                created_after=args.created_after,
-                                created_before=args.created_before
-                                )
-
+                                created_after=created_after,
+                                created_before=created_before)
     if audit_logs:
         logging.info("Audit logs fetched successfully.")
         process_reports_and_generate_excel(
             audit_logs, base_url, headers, report_pattern)
     else:
         logging.warning("No relevant audit logs found.")
-
     logging.info("Script execution completed.")
-
 
 if __name__ == "__main__":
     main()

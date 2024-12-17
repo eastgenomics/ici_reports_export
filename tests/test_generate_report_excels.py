@@ -1,13 +1,15 @@
 import unittest
 from pytest import raises, mark, fixture
 import requests
+import re
 import sys
 import os
 import argparse
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from generate_report_excels import parse_args, setup_api, get_audit_logs, get_report
+from generate_report_excels import parse_args, \
+    setup_api, get_audit_logs, get_report, parse_json
 from unittest.mock import patch
-
+import json
 
 """
 Test the generate_report_excels.py file
@@ -21,6 +23,12 @@ def mock_args():
             override_report_pattern="test_pattern"
         )
         yield mock_parse_args
+
+@fixture
+def report_json():
+    with open('tests/test_data/test_demo_breast.json') as f:
+        data = json.load(f)
+    yield data
 
 class TestParseArguments():
     """
@@ -126,60 +134,45 @@ class TestParseArguments():
             with raises(SystemExit):
                 args = parse_args()
 
+@fixture
+def return_test_demo_breast(report_json):
+    # read in test data
+    sample_id, case_info, snvs_variants_info, \
+    cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = parse_json(report_json)
+    yield sample_id, case_info, snvs_variants_info, \
+        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info
 
-if __name__ == '__main__':
-    unittest.main()
+class TestJsonParsing():
+    """
+    Check the parsing of the report JSONs returns correct data.
+    """
+    def test_CNVs_return_transcript(self, report_json, return_test_demo_breast):
+        sample_id, case_info, snvs_variants_info, \
+        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
 
-# class TestAPICalls(unittest.TestCase):
-#     """
-#     Mocked testings for the API calls
-#     """
+        # check if the CNVs return the correct transcript
 
-#     @patch('requests.get')
-#     def test_get_api_call(self, mock_get):
-#         mock_response = unittest.mock.Mock()
-#         mock_response.status_code = 200
-#         mock_response.json.return_value = {"key": "value"}
-#         mock_get.return_value = mock_response
-#         response = requests.get('http://example.com/api')
-#         self.assertEqual(response.status_code, 200)
-#         self.assertEqual(response.json(), {"key": "value"})
+        for variant in cnvs_variants_info:
+            assert variant['Transcript'].startswith(("NM_", "ENST"))
 
-#     @patch('requests.post')
-#     def test_post_api_call(self, mock_post):
-#         mock_response = unittest.mock.Mock()
-#         mock_response.status_code = 201
-#         mock_response.json.return_value = {"id": 123}
-#         mock_post.return_value = mock_response
-#         response = requests.post('http://example.com/api', json={"data": "value"})
-#         self.assertEqual(response.status_code, 201)
-#         self.assertEqual(response.json(), {"id": 123})
+    def test_CNVs_return_gene_symbol(self, report_json, return_test_demo_breast):
+        sample_id, case_info, snvs_variants_info, \
+        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
 
+        # check if the CNVs return the correct transcript
+        for variant in cnvs_variants_info:
+            assert re.match(r'^[A-Z][A-Z0-9]*$', variant['Gene'])
 
-# class TestGenerateReportExcels(unittest.TestCase):
-#     """
-#     Tests for the generate_report_excels functions
-#     """
-
-#     @patch('generate_report_excels.requests.get')
-#     def test_get_audit_logs(self, mock_get):
-#         mock_response = unittest.mock.Mock()
-#         mock_response.status_code = 200
-#         mock_response.json.return_value = {"content": [{"caseId": "12345"}]}
-#         mock_get.return_value = mock_response
-#         headers = {"Authorization": "ApiKey test_key"}
-#         logs = get_audit_logs("http://example.com", headers, "case.status.updated", "als/api/v1/auditlogs/search")
-#         self.assertEqual(logs, [{"caseId": "12345"}])
-
-#     @patch('generate_report_excels.requests.get')
-#     def test_get_report(self, mock_get):
-#         mock_response = unittest.mock.Mock()
-#         mock_response.status_code = 200
-#         mock_response.json.return_value = {"status": "completed"}
-#         mock_get.return_value = mock_response
-#         headers = {"Authorization": "ApiKey test_key"}
-#         report = get_report("http://example.com", headers, "12345")
-#         self.assertEqual(report, {"status": "completed"})
+    def test_CNVs_return_pathogenicity(self, report_json, return_test_demo_breast):
+        sample_id, case_info, snvs_variants_info, \
+        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
+        print(cnvs_variants_info)
+        # check if the CNVs return the correct transcript
+        print(variant['Pathogenicity'] for variant in cnvs_variants_info)
+        for variant in cnvs_variants_info:
+            pathogenicity_str = variant['Pathogenicity'].split(', ')
+            pathogenicity_str = "Pathogenic, Oncogenic".split(', ')
+            assert all(pathogenicity in ['Likely Pathogenic', 'Pathogenic'] for pathogenicity in pathogenicity_str)
 
 if __name__ == '__main__':
     unittest.main()
