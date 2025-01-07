@@ -51,22 +51,26 @@ def parse_args():
             # Check if the date is in the correct format
             # Format YYYY-MM-DD'T'HH:MM:SS'Z'
             if args.created_before == "":
-                logging.error("Invalid date format for created_before: %s", args.created_before)
+                logging.error("Invalid date format for created_before: %s",
+                              args.created_before)
                 raise SystemExit
             dt.datetime.strptime(args.created_before, "%Y-%m-%dT%H:%M:%SZ")
         except ValueError:
-            logging.error("Invalid date format for created_before: %s", args.created_before)
+            logging.error("Invalid date format for created_before: %s",
+                          args.created_before)
             raise SystemExit
     if args.created_after:
         try:
             # Check if the date is in the correct format
             # Format YYYY-MM-DD'T'HH:MM:SS'Z'
             if args.created_after == "":
-                logging.error("Invalid date format for created_before: %s", args.created_before)
+                logging.error("Invalid date format for created_before: %s",
+                              args.created_before)
                 raise SystemExit
             dt.datetime.strptime(args.created_after, "%Y-%m-%dT%H:%M:%SZ")
         except ValueError:
-            logging.error("Invalid date format for created_after: %s", args.created_after)
+            logging.error("Invalid date format for created_after: %s",
+                          args.created_after)
             raise SystemExit
     return args
 
@@ -89,7 +93,9 @@ def log_start_time():
             previous_start_time = file.read().strip()
     else:
         previous_start_time = None
-        raise RuntimeError("Script start time file not found. Required to run the script.")
+        raise RuntimeError(
+            "Script start time file not found. Required to run the script."
+            )
 
     # Validate the previous start time
     if previous_start_time:
@@ -135,7 +141,7 @@ def setup_api(base_url, api_key, x_illumina_workgroup):
 
 
 def get_audit_logs(base_url, headers, event_name, endpoint,
-                   created_before=None, created_after=None):
+                   created_before=None, created_after=None, page_size=1000):
     """
     Fetch audit logs for specific event types from the ICI API.
 
@@ -161,11 +167,13 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
     Returns
     -------
     list
-        A list of audit log entries, each represented as a dictionary. If an error occurs, returns an empty list.
+        A list of audit log entries, each represented as a dictionary.
+        If an error occurs, returns an empty list.
 
     Examples
     --------
-    >>> logs = get_audit_logs("https://api.ici.example.com", headers, "case.status.updated", "als/api/v1/auditlogs/search")
+    >>> logs = get_audit_logs("https://api.ici.example.com", headers,
+                              "case.report.added", "als/api/v1/auditlogs/search")
     """
     logging.info("Fetching audit logs from ICI API.")
     url = f"{base_url}{endpoint}"
@@ -174,7 +182,7 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
         "toDate": created_before,
         "fromDate": created_after,
         "pageNumber": 0,
-        "pageSize": 1000  # Adjust page size as needed
+        "pageSize": page_size
     }
 
     try:
@@ -183,7 +191,8 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
         return response.json().get("content", [])
     except requests.exceptions.RequestException as e:
         logging.error("Error fetching audit logs: %s", e)
-        return []
+        raise SystemExit("Error fetching audit logs. See Logs.")
+
 
 
 def get_report(base_url, headers, case_id):
@@ -233,8 +242,8 @@ def process_reports_and_generate_excel(audit_logs,
     Parameters
     ----------
     audit_logs : list
-        A list of audit log entries, each represented as a dictionary. The logs are filtered and matched
-        to fetch corresponding reports.
+        A list of audit log entries, each represented as a dictionary.
+        The logs are filtered and matched to fetch corresponding reports.
     base_url : str
         The base URL for the ICI API.
     headers : dict
@@ -249,8 +258,10 @@ def process_reports_and_generate_excel(audit_logs,
 
     Examples
     --------
-    >>> logs = get_audit_logs("https://api.ici.example.com", headers, "case.status.updated")
-    >>> process_reports_and_generate_excel(logs, "https://api.ici.example.com", headers, "regex_pattern")
+    >>> logs = get_audit_logs("https://api.ici.example.com", headers,
+                              "case.report.added", "als/api/v1/auditlogs/search")
+    >>> process_reports_and_generate_excel(logs, "https://api.ici.example.com",
+                                           headers, "regex_pattern")
     """
     logging.info("Processing audit logs and fetching reports.")
     matched_reports = []
@@ -421,17 +432,35 @@ def parse_json(report_json):
             exit()
 
     # Different logic for extracting CNV information
-    report = report_json.get("testDefinition", {}).get("reports", {})[0]
-    variants = report.get("reportDetails", {}).get("variants", [])
+    # Extract relevant section of the JSON for CNV information
+    report = report_json.get("subjects", [])
+    if report:
+        report = report[0] # First and only element in the list
+    else:
+        raise RuntimeError("No subjects found in the report. Truncated JSON.")
+    report = report.get("reports", [])
+    if report:
+        report = report[0] # First and only element in the list
+    else:
+        raise RuntimeError("No reports found in the report. Truncated JSON.")
+    try:
+        variants = report.get("reportDetails", {}).get("variants", [])
+    except AttributeError as e:
+        print("Error: CNV variants not found. See Error: %s", e)
+        variants = []
+    # Extract CNV information
     for variant in variants:
+        pathogenicity_list = []
         variant_type = variant.get("variantType", "Field not found")
-        if "Copy Number Loss" in variant_type or "Copy Number Gain" in variant_type:
+        if variant_type is None or variant_type == "SNV":
+            continue
+        elif re.search(r"Copy Number (Loss|Gain)", variant_type):
             fold_change = variant.get("foldChange", "N/A")
-            gene = finding.get("gene", "N/A")
-            transcript = variant.get("transcript", "N/A")
-            for actionability in variant.get("actionabilities", []):
-                pathogenicity_list.append(actionability.get("actionabilityName", "N/A"))
-            pathogenicity_list = unique(pathogenicity_list) if pathogenicity_list else ["N/A"]
+            gene = variant.get("gene", "N/A")
+            transcript = variant.get("transcript", {}).get("name", "N/A")
+            for actionability in variant.get("associations", []):
+                pathogenicity_list.append(actionability.get("associationInfo", {}).get("actionabilityName", None))
+            pathogenicity_list = set(pathogenicity_list)
             pathogenicity = ", ".join(pathogenicity_list)
             variant_info = {
                 "Gene": gene,
@@ -440,6 +469,40 @@ def parse_json(report_json):
                 "Pathogenicity": pathogenicity,
             }
             cnvs_variants_info.append(variant_info)
+        elif re.search(r"Insertion|Deletion|Delins", variant_type):
+            gene = variant.get("gene", "N/A")
+            print(variant.get("transcript", {}).get("consequences", ["N/A"]))
+            # consequences = ", ".join(
+            #     variant.get("transcript", {}).get("consequences", ["N/A"])
+            #     )
+            consequences = variant.get("transcript", {}).get("consequences", ["N/A"])
+            transcript = variant.get("transcript", {}).get("name", "N/A")
+            dna_nomenclature = variant.get("transcript", {}).get("hgvsc", "N/A")
+            protein = variant.get("transcript", {}).get("hgvsp", "N/A")
+            vaf = variant.get("sampleMetrics", {})[0].get("vrf", "N/A")
+            pathogenicity = ", ".join(
+                [a.get("actionabilityName", "N/A") for a in variant.get("associations", [])])
+            variant_info = {
+                "Gene": gene,
+                # "Consequences": consequences,
+                "Transcript": transcript,
+                "DNA Nomenclature": dna_nomenclature,
+                "Protein": protein,
+                "VAF": vaf,
+                "Pathogenicity": pathogenicity,
+            }
+            indels_variants_info.append(variant_info)
+        elif re.search(r"MNV", variant_type):
+            pass
+        elif re.search(r"TMB|MSI", variant_type):
+            pass
+        else:
+            print("Unknown variant type")
+            print(variant_type)
+            print(variant)
+            exit()
+
+
     # Print or return the extracted information
     print("Analyst Information:")
     for key, value in case_info.items():
@@ -512,7 +575,6 @@ def main():
         created_before = current_start_time
         created_after = previous_start_time
 
-
     # Get environment variables
     dotenv.load_dotenv()
     base_url = os.getenv("ICI_BASE_URL")
@@ -522,6 +584,7 @@ def main():
     x_illumina_workgroup = os.getenv("X_ILMN_WORKGROUP")
     report_pattern = os.getenv("STATUS_STRING")
     report_pattern = rf'{report_pattern}'
+    api_page_size = os.getenv("API_PAGE_SIZE")
 
     # Setup API headers
     headers = setup_api(base_url, api_key, x_illumina_workgroup)
@@ -531,7 +594,9 @@ def main():
                                 case_status_updated_event,
                                 audit_log_endpoint,
                                 created_after=created_after,
-                                created_before=created_before)
+                                created_before=created_before,
+                                page_size=api_page_size
+                                )
     if audit_logs:
         logging.info("Audit logs fetched successfully.")
         process_reports_and_generate_excel(
