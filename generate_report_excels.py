@@ -395,42 +395,6 @@ def parse_json(report_json):
             }
             snvs_variants_info.append(variant_info)
 
-        # extract variant information for CNV
-        elif variant_type == "CNV":
-            # fold_change = next((m.get("value").split(": ")[1] for m in finding.get(
-            #     "metrics", []) if "Fold change" in m.get("value", "")), "N/A")
-            # gene = finding.get("name", "N/A")
-            # transcript = "Unavailable"
-            # pathogenicity = ", ".join(
-            #     [a.get("actionabilityName", "N/A") for a in finding.get("actionabilities", [])])
-            # variant_info = {
-            #     "Gene": gene,
-            #     "fold_change": fold_change,
-            #     "Transcript": transcript,
-            #     "Pathogenicity": pathogenicity,
-            # }
-            # cnvs_variants_info.append(variant_info)
-            pass
-        elif variant_type == "Indel":
-            print("Indel")
-            exit()
-        elif variant_type == "TMB/MSI":
-            gene, consequence, transcript, dna_nomenclature, protein, vaf = \
-                "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"
-            metric = finding.get("name", "N/A")
-            metric_score = finding.get("value", "N/A")
-            metric_status = finding.get("scoreStatus", "N/A")
-            variant_info = {
-                "metric": metric,
-                "metric_score": metric_score,
-                "metric_status": metric_status,
-            }
-        else:
-            print("Unknown variant type")
-            print(variant_type)
-            print(finding)
-            exit()
-
     # Different logic for extracting CNV information
     # Extract relevant section of the JSON for CNV information
     report = report_json.get("subjects", [])
@@ -472,10 +436,9 @@ def parse_json(report_json):
         elif re.search(r"Insertion|Deletion|Delins", variant_type):
             gene = variant.get("gene", "N/A")
             print(variant.get("transcript", {}).get("consequences", ["N/A"]))
-            # consequences = ", ".join(
-            #     variant.get("transcript", {}).get("consequences", ["N/A"])
-            #     )
-            consequences = variant.get("transcript", {}).get("consequences", ["N/A"])
+            consequences_list = list(variant.get("transcript", {}).get("consequences", ["N/A"]))
+            consequences_list = [x.get("consequence", None) for x in consequences_list]
+            consequences = ", ".join(str(item) for item in consequences_list)
             transcript = variant.get("transcript", {}).get("name", "N/A")
             dna_nomenclature = variant.get("transcript", {}).get("hgvsc", "N/A")
             protein = variant.get("transcript", {}).get("hgvsp", "N/A")
@@ -484,7 +447,7 @@ def parse_json(report_json):
                 [a.get("actionabilityName", "N/A") for a in variant.get("associations", [])])
             variant_info = {
                 "Gene": gene,
-                # "Consequences": consequences,
+                "Consequences": consequences,
                 "Transcript": transcript,
                 "DNA Nomenclature": dna_nomenclature,
                 "Protein": protein,
@@ -494,15 +457,40 @@ def parse_json(report_json):
             indels_variants_info.append(variant_info)
         elif re.search(r"MNV", variant_type):
             pass
-        elif re.search(r"TMB|MSI", variant_type):
-            pass
+        # else exit as unknown variant type which needs to be investigated
         else:
             print("Unknown variant type")
             print(variant_type)
             print(variant)
             exit()
 
-
+    # extract MSI and TMB metrics, should these always be present?
+    tmb_msi_metrics = {}
+    report_data = report_json.get('reportData', {})
+    predictive_biomarkers = report_data.get('biomarkersNoFindings', {}).get('predictive', [])
+    tmb_value, msi_value, msi_usable_sites, tmb_pct_exon_50X = "N/A", "N/A", "N/A", "N/A"
+    for biomarker in predictive_biomarkers:
+        if biomarker.get('name', '') == 'TMB':
+            tmb_msi_metrics['TMB'] = biomarker
+            tmb_value = biomarker.get('value', 'N/A')
+        elif biomarker.get('name', '') == 'MSI':
+            tmb_msi_metrics['MSI'] = biomarker
+            msi_value = biomarker.get('value', 'N/A')
+    # useable sites for TMB and MSI
+    qc_metrics = report_data.get("qcMetrics", {})
+    for metric in qc_metrics:
+        metric_name = metric.get("name", "")
+        if metric_name == "DNA Library QC Metrics for MSI - Usable MSI Sites (Count)":
+            msi_usable_sites = metric.get("value", "N/A")
+        elif metric_name == "DNA Library QC Metrics for Small Variant Calling and TMB - % Exon 50X":
+            tmb_pct_exon_50X = metric.get("value", "N/A")
+    tmp_msi_variant_info = {
+        "TMB": tmb_value,
+        "MSI": msi_value,
+        "MSI Usable Sites": msi_usable_sites,
+        "TMB % Exon 50X": tmb_pct_exon_50X,
+    }
+    tmb_msi_variants_info.append(tmp_msi_variant_info)
     # Print or return the extracted information
     print("Analyst Information:")
     for key, value in case_info.items():
@@ -546,17 +534,36 @@ def json_extract_to_excel(sample_id, case_info,
     indels_variants_info_df = pd.DataFrame(indels_variants_info)
     tmb_msi_variants_info_df = pd.DataFrame(tmb_msi_variants_info)
     # Write the extracted information to an Excel file
-    with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx") as writer:
-        snvs_variants_info_df.to_excel(
-            writer, sheet_name="Small_Variants", index=False)
-        cnvs_variants_info_df.to_excel(
-            writer, sheet_name="CNVs", index=False)
-        indels_variants_info_df.to_excel(
-            writer, sheet_name="Indels", index=False)
-        tmb_msi_variants_info_df.to_excel(
-            writer, sheet_name="TMB_MSI", index=False)
-        case_info_df.to_excel(
-            writer, sheet_name="Analyst Information", index=False)
+    with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx", engine='xlsxwriter') as writer:
+        single_sheet_name = "All_Data"
+        workbook = writer.book
+        worksheet = workbook.add_worksheet(single_sheet_name)
+        writer.sheets[single_sheet_name] = worksheet
+        row_pos = 0
+
+        # Helper function to write a section header and DataFrame
+        def write_section(df, header):
+            nonlocal row_pos
+            workbook = writer.book
+            worksheet = writer.sheets[single_sheet_name]
+            merge_format = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter'})
+
+            num_cols = len(df.columns) if not df.empty else 7
+            worksheet.merge_range(row_pos, 0, row_pos, num_cols - 1, header, merge_format)
+            row_pos += 1
+
+            if df.empty:
+                worksheet.merge_range(row_pos, 0, row_pos, num_cols - 1, "No variants reported", merge_format)
+                row_pos += 2
+            else:
+                df.to_excel(writer, sheet_name=single_sheet_name, startrow=row_pos, startcol=0, index=False)
+                row_pos += len(df) + 2
+
+        write_section(snvs_variants_info_df, "Small_Variants")
+        write_section(cnvs_variants_info_df, "CNVs")
+        write_section(indels_variants_info_df, "Indels")
+        write_section(tmb_msi_variants_info_df, "TMB_MSI")
+        write_section(case_info_df, "Analyst Information")
 
 def main():
     """
