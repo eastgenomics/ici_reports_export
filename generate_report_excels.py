@@ -1,11 +1,20 @@
-import argparse
-import requests
-import re
-import pandas as pd
-import logging
-import dotenv
+"""
+This script fetches audit logs from the ICI API, filters the logs based on
+specific event types, and extracts reports for the filtered logs. The script
+then processes the reports to extract relevant information and generates an
+Excel file with the extracted data.
+"""
+# Stdlib imports
 import os
+import re
+import logging
 import datetime as dt
+
+# Third-party imports
+import requests
+import argparse
+import dotenv
+import pandas as pd
 
 # Setup logging
 logging.basicConfig(
