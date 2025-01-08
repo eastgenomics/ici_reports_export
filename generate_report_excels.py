@@ -28,7 +28,8 @@ def parse_args():
     args : argparse.Namespace
         The arguments from the command line.
     """
-    parser = argparse.ArgumentParser(description='Determine runtime mode and other parameters.')
+    parser = argparse.ArgumentParser(
+        description='Determine runtime mode and other parameters.')
     parser.add_argument('--mode', type=str, choices=['manual', 'cron'], required=True,
                         help='Runtime mode: "manual" or "cron".')
     parser.add_argument('--created_before', type=str, default=None,
@@ -40,11 +41,13 @@ def parse_args():
     args = parser.parse_args()
     # Validate inputs
     if args.created_before == "" or args.created_after == "":
-        logging.error("Invalid date format for created_before or created_after.")
+        logging.error(
+            "Invalid date format for created_before or created_after.")
         raise SystemExit
     if args.created_before and args.created_after:
         if args.created_before <= args.created_after:
-            logging.error("created_before date should be greater than created_after date.")
+            logging.error(
+                "created_before date should be greater than created_after date.")
             raise SystemExit
     if args.created_before:
         try:
@@ -95,14 +98,15 @@ def log_start_time():
         previous_start_time = None
         raise RuntimeError(
             "Script start time file not found. Required to run the script."
-            )
+        )
 
     # Validate the previous start time
     if previous_start_time:
         try:
             dt.datetime.fromisoformat(previous_start_time)
         except ValueError:
-            logging.warning("Invalid previous start time format in the log file.")
+            logging.warning(
+                "Invalid previous start time format in the log file.")
             previous_start_time = None
 
     # Write the current start time to the file
@@ -192,7 +196,6 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
     except requests.exceptions.RequestException as e:
         logging.error("Error fetching audit logs: %s", e)
         raise SystemExit("Error fetching audit logs. See Logs.")
-
 
 
 def get_report(base_url, headers, case_id):
@@ -399,12 +402,12 @@ def parse_json(report_json):
     # Extract relevant section of the JSON for CNV information
     report = report_json.get("subjects", [])
     if report:
-        report = report[0] # First and only element in the list
+        report = report[0]  # First and only element in the list
     else:
         raise RuntimeError("No subjects found in the report. Truncated JSON.")
     report = report.get("reports", [])
     if report:
-        report = report[0] # First and only element in the list
+        report = report[0]  # First and only element in the list
     else:
         raise RuntimeError("No reports found in the report. Truncated JSON.")
     try:
@@ -423,7 +426,8 @@ def parse_json(report_json):
             gene = variant.get("gene", "N/A")
             transcript = variant.get("transcript", {}).get("name", "N/A")
             for actionability in variant.get("associations", []):
-                pathogenicity_list.append(actionability.get("associationInfo", {}).get("actionabilityName", None))
+                pathogenicity_list.append(actionability.get(
+                    "associationInfo", {}).get("actionabilityName", None))
             pathogenicity_list = set(pathogenicity_list)
             pathogenicity = ", ".join(pathogenicity_list)
             variant_info = {
@@ -436,11 +440,14 @@ def parse_json(report_json):
         elif re.search(r"Insertion|Deletion|Delins", variant_type):
             gene = variant.get("gene", "N/A")
             print(variant.get("transcript", {}).get("consequences", ["N/A"]))
-            consequences_list = list(variant.get("transcript", {}).get("consequences", ["N/A"]))
-            consequences_list = [x.get("consequence", None) for x in consequences_list]
+            consequences_list = list(variant.get(
+                "transcript", {}).get("consequences", ["N/A"]))
+            consequences_list = [x.get("consequence", None)
+                                 for x in consequences_list]
             consequences = ", ".join(str(item) for item in consequences_list)
             transcript = variant.get("transcript", {}).get("name", "N/A")
-            dna_nomenclature = variant.get("transcript", {}).get("hgvsc", "N/A")
+            dna_nomenclature = variant.get(
+                "transcript", {}).get("hgvsc", "N/A")
             protein = variant.get("transcript", {}).get("hgvsp", "N/A")
             vaf = variant.get("sampleMetrics", {})[0].get("vrf", "N/A")
             pathogenicity = ", ".join(
@@ -467,7 +474,8 @@ def parse_json(report_json):
     # extract MSI and TMB metrics, should these always be present?
     tmb_msi_metrics = {}
     report_data = report_json.get('reportData', {})
-    predictive_biomarkers = report_data.get('biomarkersNoFindings', {}).get('predictive', [])
+    predictive_biomarkers = report_data.get(
+        'biomarkersNoFindings', {}).get('predictive', [])
     tmb_value, msi_value, msi_usable_sites, tmb_pct_exon_50X = "N/A", "N/A", "N/A", "N/A"
     for biomarker in predictive_biomarkers:
         if biomarker.get('name', '') == 'TMB':
@@ -546,17 +554,21 @@ def json_extract_to_excel(sample_id, case_info,
             nonlocal row_pos
             workbook = writer.book
             worksheet = writer.sheets[single_sheet_name]
-            merge_format = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter'})
+            merge_format = workbook.add_format(
+                {'bold': True, 'align': 'center', 'valign': 'vcenter'})
 
             num_cols = len(df.columns) if not df.empty else 7
-            worksheet.merge_range(row_pos, 0, row_pos, num_cols - 1, header, merge_format)
+            worksheet.merge_range(row_pos, 0, row_pos,
+                                  num_cols - 1, header, merge_format)
             row_pos += 1
 
             if df.empty:
-                worksheet.merge_range(row_pos, 0, row_pos, num_cols - 1, "No variants reported", merge_format)
+                worksheet.merge_range(
+                    row_pos, 0, row_pos, num_cols - 1, "No variants reported", merge_format)
                 row_pos += 2
             else:
-                df.to_excel(writer, sheet_name=single_sheet_name, startrow=row_pos, startcol=0, index=False)
+                df.to_excel(writer, sheet_name=single_sheet_name,
+                            startrow=row_pos, startcol=0, index=False)
                 row_pos += len(df) + 2
 
         write_section(snvs_variants_info_df, "Small_Variants")
@@ -564,6 +576,7 @@ def json_extract_to_excel(sample_id, case_info,
         write_section(indels_variants_info_df, "Indels")
         write_section(tmb_msi_variants_info_df, "TMB_MSI")
         write_section(case_info_df, "Analyst Information")
+
 
 def main():
     """
@@ -611,6 +624,7 @@ def main():
     else:
         logging.warning("No relevant audit logs found.")
     logging.info("Script execution completed.")
+
 
 if __name__ == "__main__":
     main()
