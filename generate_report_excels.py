@@ -1,8 +1,9 @@
 """
 This script fetches audit logs from the ICI API, filters the logs based on
-specific event types, and extracts reports for the filtered logs. The script
-then processes the reports to extract relevant information and generates an
-Excel file with the extracted data.
+specific event types (to get case IDs for recent reports ina  time-period),
+and extracts reports JSONS. The script then processes the reports
+to extract relevant information and generates
+an Excel file with the extracted data.
 """
 # Stdlib imports
 import os
@@ -87,17 +88,22 @@ def parse_args():
     return args
 
 
-def log_start_time():
+def log_start_time(start_time_file):
     """
     Log the start time of the script execution and store it in a file.
+
+    Parameters
+    ----------
+    start_time_file : str
+        The file name to store the start time.
 
     Returns
     -------
     tuple
         A tuple containing the previous start time and the current start time.
     """
-    start_time_file = 'script_start_time.log'
-    current_start_time = dt.datetime.now().isoformat()
+    #start_time_file = 'script_start_time.log'
+    current_start_time = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # Read the previous start time from the file
     if os.path.exists(start_time_file):
@@ -126,14 +132,12 @@ def log_start_time():
     return previous_start_time, current_start_time
 
 
-def setup_api(base_url, api_key, x_illumina_workgroup):
+def setup_api(api_key, x_illumina_workgroup):
     """
     Setup the API headers for the request.
 
     Parameters
     ----------
-    base_url : str
-        The base URL for the ICI API.
     api_key : str
         The API key for the ICI API.
     x_illumina_workgroup : str
@@ -594,15 +598,6 @@ def main():
     -------
     None
     """
-    args = parse_args()
-    if args.mode == 'manual':
-        args = parse_args()
-        created_before = args.created_before
-        created_after = args.created_after
-    elif args.mode == 'cron':
-        previous_start_time, current_start_time = log_start_time()
-        created_before = current_start_time
-        created_after = previous_start_time
 
     # Get environment variables
     dotenv.load_dotenv()
@@ -614,9 +609,24 @@ def main():
     report_pattern = os.getenv("STATUS_STRING")
     report_pattern = rf'{report_pattern}'
     api_page_size = os.getenv("API_PAGE_SIZE")
+    script_start_time_file = os.getenv("SCRIPT_START_TIME_FILE")
+
+    args = parse_args()
+    if args.mode == 'manual':
+        args = parse_args()
+        created_before = args.created_before
+        created_after = args.created_after
+    elif args.mode == 'cron':
+        previous_start_time, current_start_time = log_start_time(
+            script_start_time_file
+        )
+        created_before = current_start_time
+        created_after = previous_start_time
+    else:
+        raise ValueError("Invalid mode. Please use 'manual or 'cron'.")
 
     # Setup API headers
-    headers = setup_api(base_url, api_key, x_illumina_workgroup)
+    headers = setup_api(api_key, x_illumina_workgroup)
     # Execute script
     logging.info("Script execution started.")
     audit_logs = get_audit_logs(base_url, headers,
