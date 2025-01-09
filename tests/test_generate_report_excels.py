@@ -1,17 +1,19 @@
-import json
-from unittest.mock import patch
-from generate_report_excels import parse_args, \
-    log_start_time, setup_api, get_audit_logs, get_report, parse_json
-import unittest
-from pytest import raises, mark, fixture
-import datetime as dt
-import requests
-import re
 import sys
 import os
+import json
+import datetime as dt
+
+from unittest.mock import patch
+import unittest
+from pytest import raises, mark, fixture
+import re
 import argparse
+
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..')))
+from generate_report_excels import parse_args, \
+    log_start_time, setup_api, get_audit_logs, \
+    get_report, extract_data_from_report_json
 
 """
 Test the generate_report_excels.py file
@@ -145,8 +147,9 @@ class TestParseArguments():
 def return_test_demo_breast(report_json):
     # read in test data
     sample_id, case_info, snvs_variants_info, \
-        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = parse_json(
-            report_json)
+        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = (
+            extract_data_from_report_json(report_json)
+        )
     yield sample_id, case_info, snvs_variants_info, \
         cnvs_variants_info, indels_variants_info, tmb_msi_variants_info
 
@@ -158,7 +161,8 @@ class TestJsonParsing():
 
     def test_CNVs_return_transcript(self, report_json, return_test_demo_breast):
         sample_id, case_info, snvs_variants_info, \
-            cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
+            cnvs_variants_info, indels_variants_info, \
+                tmb_msi_variants_info = return_test_demo_breast
 
         # check if the CNVs return the correct transcript
 
@@ -167,7 +171,8 @@ class TestJsonParsing():
 
     def test_CNVs_return_gene_symbol(self, report_json, return_test_demo_breast):
         sample_id, case_info, snvs_variants_info, \
-            cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
+            cnvs_variants_info, indels_variants_info, \
+                tmb_msi_variants_info = return_test_demo_breast
 
         # check if the CNVs return the correct transcript
         for variant in cnvs_variants_info:
@@ -175,7 +180,8 @@ class TestJsonParsing():
 
     def test_CNVs_return_pathogenicity(self, report_json, return_test_demo_breast):
         sample_id, case_info, snvs_variants_info, \
-            cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
+            cnvs_variants_info, indels_variants_info, \
+                tmb_msi_variants_info = return_test_demo_breast
         print(cnvs_variants_info)
         # check if the CNVs return the correct transcript
         for variant in cnvs_variants_info:
@@ -185,7 +191,8 @@ class TestJsonParsing():
             list_accceptable_terms = ['Likely Pathogenic', 'Pathogenic',
                                       'Likely Oncogenic', 'Oncogenic']
             assert all(
-                pathogenicity in list_accceptable_terms for pathogenicity in pathogenicity_list)
+                pathogenicity in list_accceptable_terms for pathogenicity in pathogenicity_list
+                )
 
 
 class TestLoggingTime():
@@ -217,7 +224,8 @@ class TestLoggingTime():
 
     def test_log_start_time_read_raises_error_when_not_found(self):
         """
-        Test that a RuntimeError is raised when log_start_time is called with a non-existing path.
+        Test that a RuntimeError is raised when
+        log_start_time is called with a non-existing path.
         """
         with raises(RuntimeError):
             log_start_time("invalid_path.log")
