@@ -16,6 +16,8 @@ import requests
 import argparse
 import dotenv
 import pandas as pd
+import os
+import shutil
 
 # Setup logging
 logging.basicConfig(
@@ -304,63 +306,33 @@ def process_reports_and_generate_excel(audit_logs,
         logging.info("Generating Excel file from matched reports.")
 
         for report in matched_reports:
-            sample_id, case_info, snvs_variants_info, cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = parse_json(
-                report)
+            sample_id, case_info, snvs_variants_info, cnvs_variants_info, \
+                indels_variants_info, tmb_msi_metric_info = (
+                    extract_data_from_report_json(report)
+                )
             json_extract_to_excel(
                 sample_id, case_info, snvs_variants_info,
                 cnvs_variants_info, indels_variants_info,
-                tmb_msi_variants_info
+                tmb_msi_metric_info
             )
     else:
         logging.warning("No matched reports found to generate Excel.")
 
-
-def parse_json(report_json):
+def extract_SNV_data(report_json):
     """
-    Parse JSON data and return a list of dictionaries.
+    Extract SNV data from the report JSON.
 
     Parameters
     ----------
     report_json : JSON object
-        The JSON data to be parsed.
-
+        The JSON object containing information from the report API results.
     Returns
     -------
-    sample_id : str
-        The sample ID for the report.
-    case_info : dict
-        A dictionary containing case specific information,
-        i.e. analyst information.
     snvs_variants_info : list
         A list of dictionaries containing variant information for SNV.
-    cnvs_variants_info : list
-        A list of dictionaries containing variant information for CNV.
-    indels_variants_info : list
-        A list of dictionaries containing variant information for Indel.
-    tmb_msi_variants_info : list
-        A list of dictionaries containing variant information for TMB/MSI.
     """
-    sample_id = report_json.get("displayId", "N/A")
-    # Extract analyst information
-    case_info = {
-        "Primary Analyst": None,
-        "First Checker": None,
-        "Second Checker": None
-    }
-
-    for config_data in report_json.get("customMetadata", {}).get("configData", []):
-        if config_data["name"] == "Primary analyst":
-            case_info["Primary Analyst"] = config_data["value"]
-        elif config_data["name"] == "First Checker":
-            case_info["First Checker"] = config_data["value"]
-        elif config_data["name"] == "Second checker":
-            case_info["Second Checker"] = config_data["value"]
-
-    # Extract variant information
+    # SNVs
     snvs_variants_info = []
-    cnvs_variants_info = []
-    indels_variants_info = []
-    tmb_msi_variants_info = []
     report_data = report_json.get("reportData", {})
     findings = report_data.get("biomarkersFindings", {})
     print("No. findings:", len(findings))
@@ -410,7 +382,20 @@ def parse_json(report_json):
                 "Pathogenicity": pathogenicity,
             }
             snvs_variants_info.append(variant_info)
+    return snvs_variants_info
 
+
+def extract_CNV_indels_data(report_json):
+    """
+    _summary_
+
+    Parameters
+    ----------
+    report_json : _type_
+        _description_
+    """
+    cnvs_variants_info = []
+    indels_variants_info = []
     # Different logic for extracting CNV information
     # Extract relevant section of the JSON for CNV information
     report = report_json.get("subjects", [])
@@ -483,7 +468,24 @@ def parse_json(report_json):
             print(variant_type)
             print(variant)
             exit()
+    return cnvs_variants_info, indels_variants_info
 
+
+def extract_TMB_MSI_data(report_json):
+    """
+    Extract TMB and MSI data from the report JSON.
+
+    Parameters
+    ----------
+    report_json : JSON object
+        The JSON object containing information from the report API results.
+
+    Returns
+    -------
+    tmb_msi_metric_info : list
+        A list of dictionaries containing metric information for TMB/MSI.
+    """
+    tmb_msi_metric_info = []
     # extract MSI and TMB metrics, should these always be present?
     tmb_msi_metrics = {}
     report_data = report_json.get('reportData', {})
@@ -511,8 +513,67 @@ def parse_json(report_json):
         "MSI Usable Sites": msi_usable_sites,
         "TMB % Exon 50X": tmb_pct_exon_50X,
     }
-    tmb_msi_variants_info.append(tmp_msi_variant_info)
-    # Print or return the extracted information
+    tmb_msi_metric_info.append(tmp_msi_variant_info)
+
+    return tmb_msi_metric_info
+
+
+def extract_data_from_report_json(report_json):
+    """
+    Parse JSON data and return a list of dictionaries.
+
+    Parameters
+    ----------
+    report_json : JSON object
+        The JSON object containing information from the report API results.
+
+    Returns
+    -------
+    sample_id : str
+        The sample ID for the report.
+    case_info : dict
+        A dictionary containing case specific information,
+        i.e. analyst information.
+    snvs_variants_info : list
+        A list of dictionaries containing variant information for SNV.
+    cnvs_variants_info : list
+        A list of dictionaries containing variant information for CNV.
+    indels_variants_info : list
+        A list of dictionaries containing variant information for Indel.
+    tmb_msi_metric_info : list
+        A list of dictionaries containing variant information for TMB/MSI.
+    """
+    sample_id = report_json.get("displayId", "N/A")
+    # Extract analyst information
+    case_info = {
+        "Primary Analyst": None,
+        "First Checker": None,
+        "Second Checker": None
+    }
+
+    for config_data in report_json.get("customMetadata", {}).get("configData", []):
+        if config_data["name"] == "Primary analyst":
+            case_info["Primary Analyst"] = config_data["value"]
+        elif config_data["name"] == "First Checker":
+            case_info["First Checker"] = config_data["value"]
+        elif config_data["name"] == "Second checker":
+            case_info["Second Checker"] = config_data["value"]
+
+    # Extract variant information
+    snvs_variants_info = []
+    cnvs_variants_info = []
+    indels_variants_info = []
+    tmb_msi_metric_info = []
+
+    # Extract variant and metric data
+    # SNVs
+    snvs_variants_info = extract_SNV_data(report_json)
+    # CNVs and indels
+    cnvs_variants_info, indels_variants_info = extract_CNV_indels_data(report_json)
+    # extract MSI and TMB metrics, should these always be present?
+    tmb_msi_metric_info = extract_TMB_MSI_data(report_json)
+
+    # Print extracted information - TODO: rm for deployement
     print("Analyst Information:")
     for key, value in case_info.items():
         print(f"{key}: {value}")
@@ -524,16 +585,16 @@ def parse_json(report_json):
         print(variant)
     for variant in indels_variants_info:
         print(variant)
-    for variant in tmb_msi_variants_info:
+    for variant in tmb_msi_metric_info:
         print(variant)
 
     return sample_id, case_info, snvs_variants_info, \
-        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info
+        cnvs_variants_info, indels_variants_info, tmb_msi_metric_info
 
 
 def json_extract_to_excel(sample_id, case_info,
                           snvs_variants_info, cnvs_variants_info,
-                          indels_variants_info, tmb_msi_variants_info
+                          indels_variants_info, tmb_msi_metric_info
                           ):
     """
     Extract information from a JSON file and write to an Excel file
@@ -544,16 +605,46 @@ def json_extract_to_excel(sample_id, case_info,
         The sample ID for the report.
     case_info : dict
         A dictionary containing analyst information.
-    variants_info : list
+    snvs_variants_info : list
         A list of dictionaries containing variant information
-        for SNV, CNV, or Indel.
+        for SNV.
+    cnvs_variants_info : list
+        A list of dictionaries containing variant information
+        for CNV.
+    indels_variants_info : list
+        A list of dictionaries containing variant information
+        for Indel.
+    tmb_msi_metric_info : list
+        A list of dictionaries containing metric information
+        for TMB/MSI.
+
+    Outputs
+    -------
+    Excel File
+        Generates an Excel file with the extracted information.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    None
+
+    Examples
+    --------
+    >>> json_extract_to_excel("sample_id", case_info,
+                              snvs_variants_info, cnvs_variants_info,
+                              indels_variants_info, tmb_msi_metric_info
+                             )
+
     """
     # Create a Pandas DataFrame from the extracted information
     case_info_df = pd.DataFrame([case_info])
     snvs_variants_info_df = pd.DataFrame(snvs_variants_info)
     cnvs_variants_info_df = pd.DataFrame(cnvs_variants_info)
     indels_variants_info_df = pd.DataFrame(indels_variants_info)
-    tmb_msi_variants_info_df = pd.DataFrame(tmb_msi_variants_info)
+    tmb_msi_metric_info_df = pd.DataFrame(tmb_msi_metric_info)
     # Write the extracted information to an Excel file
     with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx", engine='xlsxwriter') as writer:
         single_sheet_name = "All_Data"
@@ -587,9 +678,34 @@ def json_extract_to_excel(sample_id, case_info,
         write_section(snvs_variants_info_df, "Small_Variants")
         write_section(cnvs_variants_info_df, "CNVs")
         write_section(indels_variants_info_df, "Indels")
-        write_section(tmb_msi_variants_info_df, "TMB_MSI")
+        write_section(tmb_msi_metric_info_df, "TMB_MSI")
         write_section(case_info_df, "Analyst Information")
 
+# To deploy, we need to implement the following functions:
+# def move_reports_to_clingen(destination_dir):
+#     """
+#     Move reports to the ClinGen folder in the ICI API.
+
+#     Parameters
+#     ----------
+#     destination_dir: str
+#         The destination directory to move the reports.
+
+#     Returns
+#     -------
+#     None
+#     """
+#     # Move excel files in directory to ClinGen folder
+#     destination_dir = "/old_reports"
+#     os.makedirs(destination_dir, exist_ok=True)
+
+#     for f in os.listdir("."):
+#         if f.endswith(".xlsx"):
+#             dest_path = os.path.join(destination_dir, f)
+#             if os.path.exists(dest_path):
+#                 logging.warning(f"File already exists in the new directory: {dest_path}")
+#             else:
+#                 shutil.move(f, dest_path)
 
 def main():
     """
