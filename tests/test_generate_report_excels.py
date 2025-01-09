@@ -1,19 +1,23 @@
+import json
+from unittest.mock import patch
+from generate_report_excels import parse_args, \
+    log_start_time, setup_api, get_audit_logs, get_report, parse_json
 import unittest
 from pytest import raises, mark, fixture
+import datetime as dt
 import requests
 import re
 import sys
 import os
 import argparse
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from generate_report_excels import parse_args, \
-    setup_api, get_audit_logs, get_report, parse_json
-from unittest.mock import patch
-import json
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..')))
 
 """
 Test the generate_report_excels.py file
 """
+
+
 @fixture
 def mock_args():
     with patch('argparse.ArgumentParser.parse_args') as mock_parse_args:
@@ -24,11 +28,13 @@ def mock_args():
         )
         yield mock_parse_args
 
+
 @fixture
 def report_json():
     with open('tests/test_data/test_demo_breast.json') as f:
         data = json.load(f)
     yield data
+
 
 class TestParseArguments():
     """
@@ -134,21 +140,25 @@ class TestParseArguments():
             with raises(SystemExit):
                 args = parse_args()
 
+
 @fixture
 def return_test_demo_breast(report_json):
     # read in test data
     sample_id, case_info, snvs_variants_info, \
-    cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = parse_json(report_json)
+        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = parse_json(
+            report_json)
     yield sample_id, case_info, snvs_variants_info, \
         cnvs_variants_info, indels_variants_info, tmb_msi_variants_info
+
 
 class TestJsonParsing():
     """
     Check the parsing of the report JSONs returns correct data.
     """
+
     def test_CNVs_return_transcript(self, report_json, return_test_demo_breast):
         sample_id, case_info, snvs_variants_info, \
-        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
+            cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
 
         # check if the CNVs return the correct transcript
 
@@ -157,7 +167,7 @@ class TestJsonParsing():
 
     def test_CNVs_return_gene_symbol(self, report_json, return_test_demo_breast):
         sample_id, case_info, snvs_variants_info, \
-        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
+            cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
 
         # check if the CNVs return the correct transcript
         for variant in cnvs_variants_info:
@@ -165,14 +175,53 @@ class TestJsonParsing():
 
     def test_CNVs_return_pathogenicity(self, report_json, return_test_demo_breast):
         sample_id, case_info, snvs_variants_info, \
-        cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
+            cnvs_variants_info, indels_variants_info, tmb_msi_variants_info = return_test_demo_breast
         print(cnvs_variants_info)
         # check if the CNVs return the correct transcript
-        print(variant['Pathogenicity'] for variant in cnvs_variants_info)
         for variant in cnvs_variants_info:
-            pathogenicity_str = variant['Pathogenicity'].split(', ')
-            pathogenicity_str = "Pathogenic, Oncogenic".split(', ')
-            assert all(pathogenicity in ['Likely Pathogenic', 'Pathogenic'] for pathogenicity in pathogenicity_str)
+            print(variant['Pathogenicity'])
+            pathogenicity_list = variant['Pathogenicity'].split(', ')
+            print(pathogenicity_list)
+            list_accceptable_terms = ['Likely Pathogenic', 'Pathogenic',
+                                      'Likely Oncogenic', 'Oncogenic']
+            assert all(
+                pathogenicity in list_accceptable_terms for pathogenicity in pathogenicity_list)
+
+
+class TestLoggingTime():
+    """
+    Test the log_start_time function
+    """
+    @mark.parametrize("time_value", [
+        "2023-01-01T08:30:00Z",
+        "2023-02-01T08:30:01Z",
+        "2023-03-01T08:30:02Z",
+        "2023-01-02T08:30:03Z",
+        "2023-01-03T08:30:04Z",
+        "2023-01-10T08:30:05Z",
+        "2023-01-10T09:30:05Z",
+        "2023-01-10T10:30:05Z",
+        "2023-01-10T10:45:05Z",
+        "2022-01-01T08:30:00Z",
+        "2023-01-01T08:30:00Z",
+        "2024-01-01T08:30:00Z",
+        "2025-01-01T08:30:00Z",
+        "2030-01-01T08:30:00Z",
+    ])
+    def test_log_start_time(self, time_value):
+        with patch('generate_report_excels.dt') as mock_dt:
+            mock_dt.datetime.now.return_value.strftime.return_value = time_value
+            prev_time, current_time = log_start_time(
+                "tests/test_data/script_start_time.log")
+            assert current_time == time_value
+
+    def test_log_start_time_read_raises_error_when_not_found(self):
+        """
+        Test that a RuntimeError is raised when log_start_time is called with a non-existing path.
+        """
+        with raises(RuntimeError):
+            log_start_time("invalid_path.log")
+
 
 if __name__ == '__main__':
     unittest.main()
