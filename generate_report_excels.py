@@ -210,7 +210,7 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
         return response.json().get("content", [])
     except requests.exceptions.RequestException as e:
         logging.error("Error fetching audit logs: %s", e)
-        raise SystemExit("Error fetching audit logs. See Logs.")
+        raise RuntimeError("Error fetching audit logs. See Logs.")
 
 
 def get_report(base_url, headers, case_id):
@@ -435,7 +435,7 @@ def extract_CNV_indels_data(report_json):
                 "Pathogenicity": pathogenicity,
             }
             cnvs_variants_info.append(variant_info)
-        elif re.search(r"Insertion|Deletion|Delins", variant_type):
+        elif re.search(r"Insertion|Deletion|Delins|MNV", variant_type):
             gene = variant.get("gene", "N/A")
             print(variant.get("transcript", {}).get("consequences", ["N/A"]))
             consequences_list = list(variant.get(
@@ -460,9 +460,6 @@ def extract_CNV_indels_data(report_json):
                 "Pathogenicity": pathogenicity,
             }
             indels_variants_info.append(variant_info)
-        elif re.search(r"MNV", variant_type):
-            pass
-        # else exit as unknown variant type which needs to be investigated
         else:
             print("Unknown variant type")
             print(variant_type)

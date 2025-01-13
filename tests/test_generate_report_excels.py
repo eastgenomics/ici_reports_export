@@ -3,11 +3,13 @@ import os
 import json
 import datetime as dt
 
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 import unittest
 from pytest import raises, mark, fixture
 import re
 import argparse
+
+import pytest
 
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..')))
@@ -174,7 +176,7 @@ class TestJsonParsing():
             cnvs_variants_info, indels_variants_info, \
                 tmb_msi_variants_info = return_test_demo_breast
 
-        # check if the CNVs return the correct transcript
+        # check if the CNVs return a valid gene symbol
         for variant in cnvs_variants_info:
             assert re.match(r'^[A-Z][A-Z0-9]*$', variant['Gene'])
 
@@ -229,6 +231,117 @@ class TestLoggingTime():
         """
         with raises(RuntimeError):
             log_start_time("invalid_path.log")
+
+
+class TestApiCalls():
+    """
+    Test the API calls to ICI with mock object.
+    """
+    # Mock data for API requests
+    mock_url = "https://api.illumina.com/v1/"
+    mock_headers = {
+        'accept': '*/*',
+        'Authorization': 'ApiKey API_KEY',
+        'X-ILMN-Domain': 'domain_id',
+        'X-ILMN-Workgroup': 'workgroup_id',
+    }
+    mock_event_name = "CaseCreated"
+    mock_endpoint = "audit-logs"
+
+    @pytest.mark.parametrize("error_code", [300, 404, 500])
+    @patch("generate_report_excels.requests.Session")
+    def test_non_200_errors(self, mock_session, error_code):
+        mock_api = mock_session.return_value
+        mock_api.post.return_value.status_code = error_code
+        with raises(RuntimeError):
+            get_audit_logs(self.mock_url,
+                           self.mock_headers,
+                           self.mock_event_name,
+                           self.mock_endpoint,
+                           "2023-01-01T08:30:00Z",
+                           "2024-01-01T08:30:00Z")
+
+    def test_successful_https_code(self):
+        with patch('generate_report_excels.requests.get') as mock_get:
+            mock_get.return_value.status_code = 200
+            mock_get.return_value.json.return_value = {
+                "content": "test_content",
+                "status": 200
+            }
+            # assert called once
+            output = get_audit_logs(self.mock_url,
+                                    self.mock_headers,
+                                    self.mock_event_name,
+                                    self.mock_endpoint,
+                                    "2023-01-01T08:30:00Z",
+                                    "2024-01-01T08:30:00Z")
+            assert mock_get.assert_called_once
+            assert output == "test_content"
+
+
+    @patch("generate_report_excels.requests.get")
+    def test_successful_https_code_empty_content(self, mock_get):
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"content": []}
+        mock_get.return_value = mock_response
+
+        response = get_audit_logs(
+            "https://api.ici.example.com/",
+            {"Authorization": "Bearer token"},
+            "case.report.added",
+            "als/api/v1/auditlogs/search",
+            "2024-01-01T08:30:00Z",
+            "2023-01-01T08:30:00Z"
+        )
+
+        assert response == []
+        mock_get.assert_called_once_with(
+            "https://api.ici.example.com/als/api/v1/auditlogs/search",
+            headers={"Authorization": "Bearer token"},
+            params={
+                "eventName": "case.report.added",
+                "toDate": "2024-01-01T08:30:00Z",
+                "fromDate": "2023-01-01T08:30:00Z",
+                "pageNumber": 0,
+                "pageSize": 1000
+            }
+        )
+
+
+    @patch("generate_report_excels.requests.get")
+    def test_missing_keys_in_json_response(self, mock_get):
+        """
+        What is the expected behavior when the JSON response is missing keys?
+        Response should be an empty list.
+        Response should raise an error.
+        """
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {}
+        mock_get.return_value = mock_response
+
+        response = get_audit_logs(
+            "https://api.ici.example.com/",
+            {"Authorization": "Bearer token"},
+            "case.report.added",
+            "als/api/v1/auditlogs/search",
+            "2024-01-01T08:30:00Z",
+            "2023-01-01T08:30:00Z"
+        )
+
+        assert response == []
+        mock_get.assert_called_once_with(
+            "https://api.ici.example.com/als/api/v1/auditlogs/search",
+            headers={"Authorization": "Bearer token"},
+            params={
+                "eventName": "case.report.added",
+                "toDate": "2024-01-01T08:30:00Z",
+                "fromDate": "2023-01-01T08:30:00Z",
+                "pageNumber": 0,
+                "pageSize": 1000
+            }
+        )
 
 
 if __name__ == '__main__':
