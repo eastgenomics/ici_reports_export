@@ -374,7 +374,7 @@ def extract_SNV_data(report_json):
             metric, metric_score, metric_status = "N/A", "N/A", "N/A"
             variant_info = {
                 "Gene": gene,
-                "Consequence": consequence,
+                "Consequences": consequence,
                 "Transcript": transcript,
                 "DNA Nomenclature": dna_nomenclature,
                 "Protein": protein,
@@ -641,6 +641,8 @@ def json_extract_to_excel(sample_id, case_info,
     snvs_variants_info_df = pd.DataFrame(snvs_variants_info)
     cnvs_variants_info_df = pd.DataFrame(cnvs_variants_info)
     indels_variants_info_df = pd.DataFrame(indels_variants_info)
+    small_variants_df = pd.concat(
+        [snvs_variants_info_df, indels_variants_info_df], ignore_index=True)
     tmb_msi_metric_info_df = pd.DataFrame(tmb_msi_metric_info)
     # Write the extracted information to an Excel file
     with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx", engine='xlsxwriter') as writer:
@@ -672,9 +674,8 @@ def json_extract_to_excel(sample_id, case_info,
                             startrow=row_pos, startcol=0, index=False)
                 row_pos += len(df) + 2
 
-        write_section(snvs_variants_info_df, "Small_Variants")
+        write_section(small_variants_df, "Small_Variants")
         write_section(cnvs_variants_info_df, "CNVs")
-        write_section(indels_variants_info_df, "Indels")
         write_section(tmb_msi_metric_info_df, "TMB_MSI")
         write_section(case_info_df, "Analyst Information")
 
