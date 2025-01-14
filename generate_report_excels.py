@@ -496,6 +496,10 @@ def extract_TMB_MSI_data(report_json):
         elif biomarker.get('name', '') == 'MSI':
             tmb_msi_metrics['MSI'] = biomarker
             msi_value = biomarker.get('value', 'N/A')
+            try:
+                msi_value = msi_value.split(" ")[0]
+            except AttributeError:
+                pass # keep msi_value = msi_value
     # useable sites for TMB and MSI
     qc_metrics = report_data.get("qcMetrics", {})
     for metric in qc_metrics:
@@ -643,6 +647,9 @@ def json_extract_to_excel(sample_id, case_info,
     indels_variants_info_df = pd.DataFrame(indels_variants_info)
     small_variants_df = pd.concat(
         [snvs_variants_info_df, indels_variants_info_df], ignore_index=True)
+    # Add an empty 'Tier' column to variant tables
+    small_variants_df['Tier'] = ''
+    cnvs_variants_info_df['Tier'] = ''
     tmb_msi_metric_info_df = pd.DataFrame(tmb_msi_metric_info)
     # Write the extracted information to an Excel file
     with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx", engine='xlsxwriter') as writer:
@@ -658,11 +665,15 @@ def json_extract_to_excel(sample_id, case_info,
             workbook = writer.book
             worksheet = writer.sheets[single_sheet_name]
             merge_format = workbook.add_format(
-                {'bold': True, 'align': 'center', 'valign': 'vcenter'})
-
-            num_cols = len(df.columns) if not df.empty else 7
+                {'bold': True, 'align': 'center', 'valign': 'vcenter'}
+                )
+            # Set column widths
+            for i, col in enumerate(df.columns):
+                max_len = max(df[col].astype(str).map(len).max(), len(col)) + 2
+                worksheet.set_column(i, i, max_len)
+            num_cols = len(df.columns) if not df.empty else 8
             worksheet.merge_range(row_pos, 0, row_pos,
-                                  num_cols - 1, header, merge_format)
+                      num_cols - 1, header, merge_format)
             row_pos += 1
 
             if df.empty:
@@ -671,13 +682,14 @@ def json_extract_to_excel(sample_id, case_info,
                 row_pos += 2
             else:
                 df.to_excel(writer, sheet_name=single_sheet_name,
-                            startrow=row_pos, startcol=0, index=False)
+                        startrow=row_pos, startcol=0, index=False)
                 row_pos += len(df) + 2
 
         write_section(small_variants_df, "Small_Variants")
         write_section(cnvs_variants_info_df, "CNVs")
         write_section(tmb_msi_metric_info_df, "TMB_MSI")
         write_section(case_info_df, "Analyst Information")
+
 
 # To deploy, we need to implement the following functions:
 # def move_reports_to_clingen(destination_dir):
