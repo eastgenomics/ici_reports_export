@@ -104,7 +104,6 @@ def log_start_time(start_time_file):
     tuple
         A tuple containing the previous start time and the current start time.
     """
-    #start_time_file = 'script_start_time.log'
     current_start_time = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # Read the previous start time from the file
