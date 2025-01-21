@@ -368,10 +368,10 @@ def extract_SNV_data(report_json):
                                 {}).get("totalDepth", 1), 3)
                 except TypeError as e:
                     print("Error: VAF calculation issue. See Error: %s", e)
-            fold_change = "N/A"
+
             pathogenicity = ", ".join(
                 [a.get("actionabilityName", "N/A") for a in finding.get("actionabilities", [])])
-            metric, metric_score, metric_status = "N/A", "N/A", "N/A"
+
             variant_info = {
                 "Gene": gene,
                 "Consequences": consequence,

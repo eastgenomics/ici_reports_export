@@ -1,7 +1,6 @@
 import sys
 import os
 import json
-import datetime as dt
 
 from unittest.mock import patch, Mock
 import unittest
@@ -13,12 +12,13 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..')))
+
 from generate_report_excels import parse_args, \
     log_start_time, setup_api, get_audit_logs, \
     get_report, extract_data_from_report_json
 
 """
-Test the generate_report_excels.py file
+Tests for the generate_report_excels.py file
 """
 
 
@@ -90,7 +90,7 @@ class TestParseArguments():
         if created_after == "":
             print("Empty string")
         with raises(SystemExit):
-            args = parse_args()
+            _args = parse_args()
 
     @mark.parametrize("created_before, created_after", [
         ("2024-01-01T08:31:00Z", "2024-01-01T08:30:00Z"),
@@ -133,7 +133,7 @@ class TestParseArguments():
                 created_after=created_after,
             )
             with raises(SystemExit):
-                args = parse_args()
+                _args = parse_args()
 
     def test_created_before_and_created_after_cannot_be_equal(self, mock_args):
         with patch('argparse.ArgumentParser.parse_args') as mock_parse_args:
@@ -142,7 +142,7 @@ class TestParseArguments():
                 created_after="2024-01-01T08:30:00Z",
             )
             with raises(SystemExit):
-                args = parse_args()
+                _args = parse_args()
 
 
 @fixture
@@ -164,7 +164,7 @@ class TestJsonParsing():
     def test_CNVs_return_transcript(self, report_json, return_test_demo_breast):
         sample_id, case_info, snvs_variants_info, \
             cnvs_variants_info, indels_variants_info, \
-                tmb_msi_variants_info = return_test_demo_breast
+            tmb_msi_variants_info = return_test_demo_breast
 
         # check if the CNVs return the correct transcript
 
@@ -174,7 +174,7 @@ class TestJsonParsing():
     def test_CNVs_return_gene_symbol(self, report_json, return_test_demo_breast):
         sample_id, case_info, snvs_variants_info, \
             cnvs_variants_info, indels_variants_info, \
-                tmb_msi_variants_info = return_test_demo_breast
+            tmb_msi_variants_info = return_test_demo_breast
 
         # check if the CNVs return a valid gene symbol
         for variant in cnvs_variants_info:
@@ -183,7 +183,7 @@ class TestJsonParsing():
     def test_CNVs_return_pathogenicity(self, report_json, return_test_demo_breast):
         sample_id, case_info, snvs_variants_info, \
             cnvs_variants_info, indels_variants_info, \
-                tmb_msi_variants_info = return_test_demo_breast
+            tmb_msi_variants_info = return_test_demo_breast
         print(cnvs_variants_info)
         # check if the CNVs return the correct transcript
         for variant in cnvs_variants_info:
@@ -194,7 +194,7 @@ class TestJsonParsing():
                                       'Likely Oncogenic', 'Oncogenic']
             assert all(
                 pathogenicity in list_accceptable_terms for pathogenicity in pathogenicity_list
-                )
+            )
 
 
 class TestLoggingTime():
@@ -278,7 +278,6 @@ class TestApiCalls():
             assert mock_get.assert_called_once
             assert output == "test_content"
 
-
     @patch("generate_report_excels.requests.get")
     def test_successful_https_code_empty_content(self, mock_get):
         mock_response = Mock()
@@ -307,7 +306,6 @@ class TestApiCalls():
                 "pageSize": 1000
             }
         )
-
 
     @patch("generate_report_excels.requests.get")
     def test_missing_keys_in_json_response(self, mock_get):
