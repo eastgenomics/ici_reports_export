@@ -180,20 +180,20 @@ class TestJsonParsing():
         for variant in cnvs_variants_info:
             assert re.match(r'^[A-Z][A-Z0-9]*$', variant['Gene'])
 
-    def test_CNVs_return_pathogenicity(self, report_json, return_test_demo_breast):
+    def test_CNVs_return_oncogenicity(self, report_json, return_test_demo_breast):
         sample_id, case_info, snvs_variants_info, \
             cnvs_variants_info, indels_variants_info, \
             tmb_msi_variants_info = return_test_demo_breast
         print(cnvs_variants_info)
         # check if the CNVs return the correct transcript
         for variant in cnvs_variants_info:
-            print(variant['Pathogenicity'])
-            pathogenicity_list = variant['Pathogenicity'].split(', ')
-            print(pathogenicity_list)
+            print(variant['Oncogenicity'])
+            oncogenicity_list = variant['Oncogenicity'].split(', ')
+            print(oncogenicity_list)
             list_accceptable_terms = ['Likely Pathogenic', 'Pathogenic',
                                       'Likely Oncogenic', 'Oncogenic']
             assert all(
-                pathogenicity in list_accceptable_terms for pathogenicity in pathogenicity_list
+                oncogenicity in list_accceptable_terms for oncogenicity in oncogenicity_list
             )
 
 

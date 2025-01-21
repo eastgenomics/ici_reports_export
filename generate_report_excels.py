@@ -10,6 +10,7 @@ import os
 import re
 import logging
 import datetime as dt
+from venv import logger
 
 # Third-party imports
 import requests
@@ -470,10 +471,9 @@ def extract_CNV_indels_data(report_json):
             }
             indels_variants_info.append(variant_info)
         else:
-            print("Unknown variant type")
-            print(variant_type)
-            print(variant)
-            exit()
+            logger.error(f"Unknown variant type: {variant_type}")
+            logger.error(variant)
+            raise ValueError("Unknown variant type")
     return cnvs_variants_info, indels_variants_info
 
 
@@ -492,23 +492,18 @@ def extract_TMB_MSI_data(report_json):
         A list of dictionaries containing metric information for TMB/MSI.
     """
     tmb_msi_metric_info = []
-    # extract MSI and TMB metrics, should these always be present?
-    tmb_msi_metrics = {}
-    report_data = report_json.get('reportData', {})
-    predictive_biomarkers = report_data.get(
-        'biomarkersNoFindings', {}).get('predictive', [])
+    # extract MSI and TMB metrics
+
     tmb_value, msi_value, msi_usable_sites, tmb_pct_exon_50X = "N/A", "N/A", "N/A", "N/A"
-    for biomarker in predictive_biomarkers:
-        if biomarker.get('name', '') == 'TMB':
-            tmb_msi_metrics['TMB'] = biomarker
-            tmb_value = biomarker.get('value', 'N/A')
-        elif biomarker.get('name', '') == 'MSI':
-            tmb_msi_metrics['MSI'] = biomarker
-            msi_value = biomarker.get('value', 'N/A')
-            try:
-                msi_value = msi_value.split(" ")[0]
-            except AttributeError:
-                pass # keep msi_value = msi_value
+
+    # extract MSI and TMB metrics
+    # from section which is always present in JSON
+    report_data = report_json.get('reportData', {})
+    tumor_sample = report_data.get('tumorSample', {})
+
+    tmb_value = tumor_sample.get('tmb', 'N/A')
+    msi_value = tumor_sample.get('msi', 'N/A')
+
     # useable sites for TMB and MSI
     qc_metrics = report_data.get("qcMetrics", {})
     for metric in qc_metrics:
@@ -517,13 +512,14 @@ def extract_TMB_MSI_data(report_json):
             msi_usable_sites = metric.get("value", "N/A")
         elif metric_name == "DNA Library QC Metrics for Small Variant Calling and TMB - % Exon 50X":
             tmb_pct_exon_50X = metric.get("value", "N/A")
-    tmp_msi_variant_info = {
-        "TMB": tmb_value,
-        "MSI": msi_value,
-        "MSI Usable Sites": msi_usable_sites,
+
+    tmb_msi_variant_info = {
+        "TMB (mut/MB)": tmb_value,
+        "MSI (% unstable sites) ": msi_value,
+        "MSI Total Usable Sites": msi_usable_sites,
         "TMB % Exon 50X": tmb_pct_exon_50X,
     }
-    tmb_msi_metric_info.append(tmp_msi_variant_info)
+    tmb_msi_metric_info.append(tmb_msi_variant_info)
 
     return tmb_msi_metric_info
 
