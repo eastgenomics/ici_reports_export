@@ -20,6 +20,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Install pytest
+      run: |
+        pip install pytest pytest-cov pytest-random-order
+
+    - name: Set-up test files
+      run: |
+        touch tests/test_data/script_start_time.log
+
     - name: Run Pytest
       run: |
         pytest -vv --cov --random-order

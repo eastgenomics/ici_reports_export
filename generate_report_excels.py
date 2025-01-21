@@ -304,7 +304,7 @@ def process_reports_and_generate_excel(audit_logs,
             logging.debug("No match for case ID: %s", case_id)
             logging.debug("Report text: %s", report_text)
             logging.debug("Pattern: %s", report_pattern)
-    print(matched_reports)
+
     if matched_reports:
         logging.info("Generating Excel file from matched reports.")
 
@@ -660,7 +660,7 @@ def json_extract_to_excel(sample_id, case_info,
     tmb_msi_metric_info_df = pd.DataFrame(tmb_msi_metric_info)
     # Write the extracted information to an Excel file
     with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx", engine='xlsxwriter') as writer:
-        single_sheet_name = "All_Data"
+        single_sheet_name = "Reported_Variants_and_Metrics"
         workbook = writer.book
         worksheet = workbook.add_worksheet(single_sheet_name)
         writer.sheets[single_sheet_name] = worksheet
