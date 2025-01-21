@@ -23,8 +23,8 @@ This Python script is designed to export reports by fetching data from the ICI A
 ## 🔧 Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/ici_report_export.git
-   cd ici_report_export
+   git clone https://github.com/eastgenomics/ici_reports_export.git
+   cd ici_reports_export
    ```
 
 2. Create a virtual environment and activate it:
@@ -47,11 +47,6 @@ The script can be run in different modes based on the provided arguments. Below 
 
 ### Example Commands
 1. Run the script with required arguments:
-   ```bash
-   python generate_report_excels.py --created_before 2024-01-01T08:30:00Z --created_after 2023-01-01T08:30:00Z
-   ```
-
-2. Run the script with an optional custom report pattern:
    ```bash
    python generate_report_excels.py --created_before 2024-01-01T08:30:00Z --created_after 2023-01-01T08:30:00Z
    ```

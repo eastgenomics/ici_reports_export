@@ -17,7 +17,6 @@ import requests
 import argparse
 import dotenv
 import pandas as pd
-import os
 import shutil
 
 # Setup logging

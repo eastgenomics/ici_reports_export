@@ -14,8 +14,8 @@ sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..')))
 
 from generate_report_excels import parse_args, \
-    log_start_time, setup_api, get_audit_logs, \
-    get_report, extract_data_from_report_json
+    log_start_time, get_audit_logs, \
+    extract_data_from_report_json
 
 """
 Tests for the generate_report_excels.py file
@@ -65,7 +65,7 @@ class TestParseArguments():
             created_after=created_after,
         )
         with raises(SystemExit):
-            args = parse_args()
+            _args = parse_args()
 
     @mark.parametrize("created_before, created_after", [
         ("2024-01-01T08:30:00Z", "invalid_date"),
