@@ -183,6 +183,8 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
     created_after : str
         The date string in the format YYYY-MM-DD'T'HH:MM:SS'Z'
         e.g: 2024-01-01T08:30:00Z to filter reports created after this date.
+    page_size : int
+        The number of audit logs to fetch per page.
 
     Returns
     -------
