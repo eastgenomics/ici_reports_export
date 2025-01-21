@@ -361,15 +361,13 @@ def extract_SNV_data(report_json):
             dna_nomenclature = finding.get(
                 "variantTranscript", {}).get("hgvsc", "N/A")
             protein = finding.get("value", "N/A")
-            vaf = finding.get("sampleMetrics", {}).get("alleleDepth", "N/A")
-            if vaf != "N/A" and isinstance(vaf, (int, float)):
-                try:
-                    vaf = round(vaf / finding.get("sampleMetrics",
-                                {}).get("totalDepth", 1), 3)
-                except TypeError as e:
-                    print("Error: VAF calculation issue. See Error: %s", e)
+            vaf = finding.get("readFrequency", {})
+            try:
+                vaf = round(vaf, 2)
+            except TypeError as e:
+                print("Error: VAF calculation issue. See Error: %s", e)
 
-            pathogenicity = ", ".join(
+            oncogenicity = ", ".join(
                 [a.get("actionabilityName", "N/A") for a in finding.get("actionabilities", [])])
 
             variant_info = {
@@ -379,7 +377,7 @@ def extract_SNV_data(report_json):
                 "DNA Nomenclature": dna_nomenclature,
                 "Protein": protein,
                 "VAF": vaf,
-                "Pathogenicity": pathogenicity,
+                "Oncogenicity": oncogenicity,
             }
             snvs_variants_info.append(variant_info)
     return snvs_variants_info
@@ -387,12 +385,19 @@ def extract_SNV_data(report_json):
 
 def extract_CNV_indels_data(report_json):
     """
-    _summary_
+    Extract CNV and Indel data from the report JSON.
 
     Parameters
     ----------
-    report_json : _type_
-        _description_
+    report_json : JSON object
+        The JSON object containing information from the report API results.
+
+    Returns
+    -------
+    cnvs_variants_info : list
+        A list of dictionaries containing variant information for CNV.
+    indels_variants_info : list
+        A list of dictionaries containing variant information for Indel.
     """
     cnvs_variants_info = []
     indels_variants_info = []
@@ -415,7 +420,7 @@ def extract_CNV_indels_data(report_json):
         variants = []
     # Extract CNV information
     for variant in variants:
-        pathogenicity_list = []
+        oncogenicity_list = []
         variant_type = variant.get("variantType", "Field not found")
         if variant_type is None or variant_type == "SNV":
             continue
@@ -424,15 +429,15 @@ def extract_CNV_indels_data(report_json):
             gene = variant.get("gene", "N/A")
             transcript = variant.get("transcript", {}).get("name", "N/A")
             for actionability in variant.get("associations", []):
-                pathogenicity_list.append(actionability.get(
+                oncogenicity_list.append(actionability.get(
                     "associationInfo", {}).get("actionabilityName", None))
-            pathogenicity_list = set(pathogenicity_list)
-            pathogenicity = ", ".join(pathogenicity_list)
+            oncogenicity_list = set(oncogenicity_list)
+            oncogenicity = ", ".join(oncogenicity_list)
             variant_info = {
                 "Gene": gene,
                 "fold_change": fold_change,
                 "Transcript": transcript,
-                "Pathogenicity": pathogenicity,
+                "Oncogenicity": oncogenicity,
             }
             cnvs_variants_info.append(variant_info)
         elif re.search(r"Insertion|Deletion|Delins|MNV", variant_type):
@@ -448,7 +453,11 @@ def extract_CNV_indels_data(report_json):
                 "transcript", {}).get("hgvsc", "N/A")
             protein = variant.get("transcript", {}).get("hgvsp", "N/A")
             vaf = variant.get("sampleMetrics", {})[0].get("vrf", "N/A")
-            pathogenicity = ", ".join(
+            try:
+                vaf = round(vaf, 2)
+            except TypeError as e:
+                print("Error: VAF calculation issue. See Error: %s", e)
+            oncogenicity = ", ".join(
                 [a.get("actionabilityName", "N/A") for a in variant.get("associations", [])])
             variant_info = {
                 "Gene": gene,
@@ -457,7 +466,7 @@ def extract_CNV_indels_data(report_json):
                 "DNA Nomenclature": dna_nomenclature,
                 "Protein": protein,
                 "VAF": vaf,
-                "Pathogenicity": pathogenicity,
+                "Oncogenicity": oncogenicity,
             }
             indels_variants_info.append(variant_info)
         else:
