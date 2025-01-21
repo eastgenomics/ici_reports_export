@@ -375,7 +375,7 @@ def extract_SNV_data(report_json):
                 "Gene": gene,
                 "Consequences": consequence,
                 "Transcript": transcript,
-                "DNA Nomenclature": dna_nomenclature,
+                "DNA": dna_nomenclature,
                 "Protein": protein,
                 "VAF": vaf,
                 "Oncogenicity": oncogenicity,
@@ -384,7 +384,7 @@ def extract_SNV_data(report_json):
     return snvs_variants_info
 
 
-def extract_CNV_indels_data(report_json):
+def extract_CNV_indels_MNVs_data(report_json):
     """
     Extract CNV and Indel data from the report JSON.
 
@@ -464,7 +464,7 @@ def extract_CNV_indels_data(report_json):
                 "Gene": gene,
                 "Consequences": consequences,
                 "Transcript": transcript,
-                "DNA Nomenclature": dna_nomenclature,
+                "DNA": dna_nomenclature,
                 "Protein": protein,
                 "VAF": vaf,
                 "Oncogenicity": oncogenicity,
@@ -575,8 +575,10 @@ def extract_data_from_report_json(report_json):
     # SNVs
     snvs_variants_info = extract_SNV_data(report_json)
     # CNVs and indels
-    cnvs_variants_info, indels_variants_info = extract_CNV_indels_data(report_json)
-    # extract MSI and TMB metrics, should these always be present?
+    cnvs_variants_info, indels_variants_info = extract_CNV_indels_MNVs_data(
+        report_json
+        )
+    # extract MSI and TMB metrics
     tmb_msi_metric_info = extract_TMB_MSI_data(report_json)
 
     # Print extracted information - TODO: rm for deployement
