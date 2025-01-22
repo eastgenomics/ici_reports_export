@@ -326,7 +326,7 @@ def extract_SNV_data(report_json):
             variant_type = "Indel"
         elif "p." in variant_type:
             variant_type = "SNV"
-        elif "TMB" or "MSI" in finding.get("name", "N/A"):
+        elif finding.get("name", "N/A") in ["TMB", "MSI"]:
             variant_type = "TMB/MSI"
         else:
             variant_type = "N/A"
@@ -347,7 +347,7 @@ def extract_SNV_data(report_json):
             try:
                 vaf = round(vaf, 2)
             except TypeError as e:
-                logger(f"Error: VAF calculation issue. See Error: {e}")
+                logger.error(f"Error: VAF calculation issue. See Error: {e}")
 
             oncogenicity = ", ".join(
                 [a.get("actionabilityName", "N/A") for a in finding.get("actionabilities", [])])
