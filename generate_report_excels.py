@@ -10,7 +10,9 @@ import os
 import re
 import logging
 import datetime as dt
-from venv import logger
+
+from frozendict import V
+import logger
 
 # Third-party imports
 import requests
@@ -42,51 +44,40 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(
         description='Determine runtime mode and other parameters.')
-    parser.add_argument('--mode', type=str, choices=['manual', 'cron'], required=True,
-                        help='Runtime mode: "manual" or "cron".')
     parser.add_argument('--created_before', type=str, default=None,
                         help='The date string in the format YYYY-MM-DD\'T\'HH:MM:SS\'Z\''
-                        'e.g: 2024-01-01T08:30:00Z to filter reports created before this date. Only allowed in manual mode.')
+                        'e.g: 2024-01-01T08:30:00Z to filter reports created before this date.'
+                        'This overrides the start time file which records the previous runtime.')
     parser.add_argument('--created_after', type=str, default=None,
                         help='The date string in the format YYYY-MM-DD\'T\'HH:MM:SS\'Z\''
-                        'e.g: 2024-01-01T08:30:00Z to filter reports created after this date. Only allowed in manual mode.')
+                        'e.g: 2024-01-01T08:30:00Z to filter reports created after this date.')
     args = parser.parse_args()
+
     # Validate inputs
     if args.created_before == "" or args.created_after == "":
         logging.error(
-            "Invalid date format for created_before or created_after.")
-        raise SystemExit
+            "Empty date string for created_before or created_after.")
+        raise ValueError("Empty date string for created_before or created_after.")
     if args.created_before and args.created_after:
         if args.created_before <= args.created_after:
             logging.error(
                 "created_before date should be greater than created_after date.")
-            raise SystemExit
+            raise ValueError("created_before date should be greater than created_after date.")
+
     if args.created_before:
         try:
-            # Check if the date is in the correct format
-            # Format YYYY-MM-DD'T'HH:MM:SS'Z'
-            if args.created_before == "":
-                logging.error("Invalid date format for created_before: %s",
-                              args.created_before)
-                raise SystemExit
             dt.datetime.strptime(args.created_before, "%Y-%m-%dT%H:%M:%SZ")
         except ValueError:
             logging.error("Invalid date format for created_before: %s",
                           args.created_before)
-            raise SystemExit
+            raise ValueError("Invalid date format for created_before.")
     if args.created_after:
         try:
-            # Check if the date is in the correct format
-            # Format YYYY-MM-DD'T'HH:MM:SS'Z'
-            if args.created_after == "":
-                logging.error("Invalid date format for created_before: %s",
-                              args.created_before)
-                raise SystemExit
             dt.datetime.strptime(args.created_after, "%Y-%m-%dT%H:%M:%SZ")
         except ValueError:
             logging.error("Invalid date format for created_after: %s",
                           args.created_after)
-            raise SystemExit
+            raise ValueError("Invalid date format for created_after.")
     return args
 
 
@@ -107,23 +98,16 @@ def log_start_time(start_time_file):
     current_start_time = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # Read the previous start time from the file
-    if os.path.exists(start_time_file):
-        with open(start_time_file, 'r') as file:
-            previous_start_time = file.read().strip()
-    else:
-        previous_start_time = None
-        raise RuntimeError(
-            "Script start time file not found. Required to run the script."
-        )
+    with open(start_time_file, 'r') as file:
+        previous_start_time = file.read().strip()
 
     # Validate the previous start time
-    if previous_start_time:
-        try:
-            dt.datetime.fromisoformat(previous_start_time)
-        except ValueError:
-            logging.warning(
-                "Invalid previous start time format in the log file.")
-            previous_start_time = None
+    try:
+        previous_start_time = dt.datetime.strptime(previous_start_time, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        logging.warning(
+            "Invalid previous start time format in the log file.")
+        previous_start_time = None
 
     # Write the current start time to the file
     with open(start_time_file, 'w') as file:
@@ -133,7 +117,7 @@ def log_start_time(start_time_file):
     return previous_start_time, current_start_time
 
 
-def setup_api(api_key, x_illumina_workgroup):
+def setup_api_headers(api_key, x_illumina_workgroup):
     """
     Setup the API headers for the request.
 
@@ -242,7 +226,6 @@ def get_report(base_url, headers, case_id):
     url = f"{base_url}drs/v1/draftreport/case/{case_id}/reportjson"
 
     try:
-        print(url, headers)
         response = requests.get(url, headers=headers)
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -287,15 +270,12 @@ def process_reports_and_generate_excel(audit_logs,
 
     for log in audit_logs:
         case_id = log.get("caseId")
-        print(case_id)
         # Assuming report text is in the 'message' field
         report_text = log.get("message", "")
-        print(report_pattern)
         if re.search(report_pattern, report_text, re.IGNORECASE):
             logging.debug(
                 "Report text matched pattern for case ID: %s", case_id)
             report_json = get_report(base_url, headers, case_id)
-            print(report_json)
             if report_json:
                 matched_reports.append(report_json)
         else:
@@ -336,7 +316,7 @@ def extract_SNV_data(report_json):
     snvs_variants_info = []
     report_data = report_json.get("reportData", {})
     findings = report_data.get("biomarkersFindings", {})
-    print("No. findings:", len(findings))
+    logger.info(f"No. findings: {len(findings)}")
     for finding in findings:
         # check for what variant
         variant_type = finding.get("value", "N/A")
@@ -350,7 +330,8 @@ def extract_SNV_data(report_json):
             variant_type = "TMB/MSI"
         else:
             variant_type = "N/A"
-            print(finding)
+            logger.error(f"Unknown variant type: {variant_type}")
+            logger.error(finding)
             raise ValueError("Unknown variant type")
         # extract variant information for SNV
         if variant_type == "SNV":
@@ -366,7 +347,7 @@ def extract_SNV_data(report_json):
             try:
                 vaf = round(vaf, 2)
             except TypeError as e:
-                print("Error: VAF calculation issue. See Error: %s", e)
+                logger(f"Error: VAF calculation issue. See Error: {e}")
 
             oncogenicity = ", ".join(
                 [a.get("actionabilityName", "N/A") for a in finding.get("actionabilities", [])])
@@ -417,7 +398,7 @@ def extract_CNV_indels_MNVs_data(report_json):
     try:
         variants = report.get("reportDetails", {}).get("variants", [])
     except AttributeError as e:
-        print("Error: CNV variants not found. See Error: %s", e)
+        logger.error(f"Error: CNV variants not found. See Error: {e}")
         variants = []
     # Extract CNV information
     for variant in variants:
@@ -443,7 +424,6 @@ def extract_CNV_indels_MNVs_data(report_json):
             cnvs_variants_info.append(variant_info)
         elif re.search(r"Insertion|Deletion|Delins|MNV", variant_type):
             gene = variant.get("gene", "N/A")
-            print(variant.get("transcript", {}).get("consequences", ["N/A"]))
             consequences_list = list(variant.get(
                 "transcript", {}).get("consequences", ["N/A"]))
             consequences_list = [x.get("consequence", None)
@@ -457,7 +437,7 @@ def extract_CNV_indels_MNVs_data(report_json):
             try:
                 vaf = round(vaf, 2)
             except TypeError as e:
-                print("Error: VAF calculation issue. See Error: %s", e)
+                logger.error(f"Error: VAF calculation issue. See Error: {e}")
             oncogenicity = ", ".join(
                 [a.get("actionabilityName", "N/A") for a in variant.get("associations", [])])
             variant_info = {
@@ -745,21 +725,24 @@ def main():
     script_start_time_file = os.getenv("SCRIPT_START_TIME_FILE")
 
     args = parse_args()
-    if args.mode == 'manual':
-        args = parse_args()
+    previous_start_time, current_start_time = log_start_time(
+        script_start_time_file
+    )
+
+    # Check if the user has provided a start time
+
+    if args.created_before:
         created_before = args.created_before
+    if args.created_after:
         created_after = args.created_after
-    elif args.mode == 'cron':
-        previous_start_time, current_start_time = log_start_time(
-            script_start_time_file
-        )
+    if not args.created_before and not args.created_after:
+        # No set created_before and no set created_after times
+        # Use the previous start time and current start time
         created_before = current_start_time
         created_after = previous_start_time
-    else:
-        raise ValueError("Invalid mode. Please use 'manual or 'cron'.")
 
     # Setup API headers
-    headers = setup_api(api_key, x_illumina_workgroup)
+    headers = setup_api_headers(api_key, x_illumina_workgroup)
     # Execute script
     logging.info("Script execution started.")
     audit_logs = get_audit_logs(base_url, headers,
