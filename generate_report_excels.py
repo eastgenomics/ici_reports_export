@@ -50,6 +50,8 @@ def parse_args():
     parser.add_argument('--created_after', type=str, default=None,
                         help='The date string in the format YYYY-MM-DD\'T\'HH:MM:SS\'Z\''
                         'e.g: 2024-01-01T08:30:00Z to filter reports created after this date. Only allowed in manual mode.')
+    parser.add_argument('--mv-reports', type=bool, default=False,
+                        help='Move reports to the ClinGen folder in the ICI API.')
     args = parser.parse_args()
     # Validate inputs
     if args.created_before == "" or args.created_after == "":
@@ -697,32 +699,30 @@ def json_extract_to_excel(sample_id, case_info,
         write_section(tmb_msi_metric_info_df, "TMB_MSI")
         write_section(case_info_df, "Analyst Information")
 
+def move_reports_to_clingen(destination_dir):
+    """
+    Move reports to the ClinGen folder in the ICI API.
 
-# To deploy, we need to implement the following functions:
-# def move_reports_to_clingen(destination_dir):
-#     """
-#     Move reports to the ClinGen folder in the ICI API.
+    Parameters
+    ----------
+    destination_dir: str
+        The destination directory to move the reports.
 
-#     Parameters
-#     ----------
-#     destination_dir: str
-#         The destination directory to move the reports.
+    Returns
+    -------
+    None
+    """
+    # Move excel files in directory to ClinGen folder
+    destination_dir = "/old_reports"
+    os.makedirs(destination_dir, exist_ok=True)
 
-#     Returns
-#     -------
-#     None
-#     """
-#     # Move excel files in directory to ClinGen folder
-#     destination_dir = "/old_reports"
-#     os.makedirs(destination_dir, exist_ok=True)
-
-#     for f in os.listdir("."):
-#         if f.endswith(".xlsx"):
-#             dest_path = os.path.join(destination_dir, f)
-#             if os.path.exists(dest_path):
-#                 logging.warning(f"File already exists in the new directory: {dest_path}")
-#             else:
-#                 shutil.move(f, dest_path)
+    for f in os.listdir("."):
+        if f.endswith(".xlsx"):
+            dest_path = os.path.join(destination_dir, f)
+            if os.path.exists(dest_path):
+                logging.warning(f"File already exists in the new directory: {dest_path}")
+            else:
+                shutil.move(f, dest_path)
 
 def main():
     """
@@ -775,6 +775,10 @@ def main():
             audit_logs, base_url, headers, report_pattern)
     else:
         logging.warning("No relevant audit logs found.")
+    if args.mv_reports:
+        destination_dir = os.getenv("DESTINATION_DIR")
+        move_reports_to_clingen(destination_dir)
+
     logging.info("Script execution completed.")
 
 
