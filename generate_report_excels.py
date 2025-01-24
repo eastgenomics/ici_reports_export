@@ -11,20 +11,19 @@ import re
 import logging
 import datetime as dt
 
-from frozendict import V
-import logger
-
 # Third-party imports
-import requests
 import argparse
 import dotenv
 import pandas as pd
-import shutil
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+from requests.exceptions import RequestException
 
 # Setup logging
 logging.basicConfig(
     filename='ici_api_script.log',
-    level=logging.DEBUG,
+    level=logging.ERROR,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
@@ -54,34 +53,31 @@ def parse_args():
     args = parser.parse_args()
 
     # Validate inputs
-    if args.created_before == "" or args.created_after == "":
-        logging.error(
-            "Empty date string for created_before or created_after.")
-        raise ValueError("Empty date string for created_before or created_after.")
-    if args.created_before and args.created_after:
-        if args.created_before <= args.created_after:
-            logging.error(
-                "created_before date should be greater than created_after date.")
-            raise ValueError("created_before date should be greater than created_after date.")
-
-    if args.created_before:
-        try:
-            dt.datetime.strptime(args.created_before, "%Y-%m-%dT%H:%M:%SZ")
-        except ValueError:
-            logging.error("Invalid date format for created_before: %s",
-                          args.created_before)
-            raise ValueError("Invalid date format for created_before.")
-    if args.created_after:
-        try:
-            dt.datetime.strptime(args.created_after, "%Y-%m-%dT%H:%M:%SZ")
-        except ValueError:
-            logging.error("Invalid date format for created_after: %s",
-                          args.created_after)
-            raise ValueError("Invalid date format for created_after.")
+    created_before_dt_obj = validate_date(args.created_before, "created_before")
+    created_after_dt_obj = validate_date(args.created_after, "created_after")
+    epoch_seconds_before = int(created_before_dt_obj.timestamp())
+    epoch_seconds_after = int(created_after_dt_obj.timestamp())
+    if epoch_seconds_before < epoch_seconds_after:
+        logging.error("Invalid date range: created_before < created_after")
+        raise ValueError("Invalid date range: created_before < created_after")
     return args
 
 
-def log_start_time(start_time_file):
+def validate_date(date_str, param_name):
+    """Validate date string format."""
+    if date_str is None:
+        return
+    try:
+        if date_str == "":
+            logging.error(f"Invalid date format for {param_name}")
+            raise ValueError
+        sanatized_dt_obj = dt.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
+        return sanatized_dt_obj
+    except ValueError:
+        logging.error(f"Invalid date format for {param_name}: {date_str}")
+        raise ValueError
+
+def log_start_time(start_time_file, args):
     """
     Log the start time of the script execution and store it in a file.
 
@@ -89,6 +85,8 @@ def log_start_time(start_time_file):
     ----------
     start_time_file : str
         The file name to store the start time.
+    args: argparse.Namespace
+        The arguments from the command line.
 
     Returns
     -------
@@ -98,8 +96,23 @@ def log_start_time(start_time_file):
     current_start_time = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # Read the previous start time from the file
-    with open(start_time_file, 'r') as file:
-        previous_start_time = file.read().strip()
+    if os.path.exists(start_time_file):
+        with open(start_time_file, 'r') as file:
+            previous_start_time = file.read().strip()
+    else:
+        logging.info("No previous start time found in the log file.")
+        logging.info(f"Script start time recorded: {current_start_time}")
+        if args.created_before or args.created_after:
+            logging.info(
+                "Arguments provided."
+                "Therefore no need to write the current start time to the file."
+                )
+            return None, current_start_time
+        logging.info("Writing the current start time to the file.")
+        with open(start_time_file, 'w') as file:
+            file.write(current_start_time)
+        # Continue running as other args may be provided
+        return None, current_start_time
 
     # Validate the previous start time
     try:
@@ -190,12 +203,30 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
     }
 
     try:
-        response = requests.get(url, headers=headers, params=params)
-        logging.debug("Audit logs response: %s", response.json())
-        return response.json().get("content", [])
-    except requests.exceptions.RequestException as e:
-        logging.error("Error fetching audit logs: %s", e)
-        raise RuntimeError("Error fetching audit logs. See Logs.")
+        session = requests.Session()
+        retry = Retry(
+            total=5,
+            backoff_factor=10,
+            status_forcelist=[429, 500, 502, 503, 504]
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        response = session.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        if response.status_code == 200:
+            logging.debug(f"Audit logs response: {response.json()}")
+            return response.json().get("content", [])
+        else:
+            logging.error(f"Error fetching audit logs: {response.status_code}")
+            raise RequestException(
+                f"Error fetching audit logs. Status code: {response.status_code}"
+            )
+    except RequestException as e:
+        logging.error(f"Request exception while fetching audit logs: {e}")
+        raise RequestException(
+            f"Error fetching audit logs. {e}"
+        )
 
 
 def get_report(base_url, headers, case_id):
@@ -226,9 +257,20 @@ def get_report(base_url, headers, case_id):
     url = f"{base_url}drs/v1/draftreport/case/{case_id}/reportjson"
 
     try:
-        response = requests.get(url, headers=headers)
+        session = requests.Session()
+        retry = Retry(
+            total=3,
+            backoff_factor=2,
+            status_forcelist=[429, 500, 502, 503, 504]
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+
+        response = session.get(url, headers=headers)
+        response.raise_for_status()
         return response.json()
-    except requests.exceptions.RequestException as e:
+    except RequestException as e:
         logging.error("Error fetching report for case %s: %s", case_id, e)
         return None
 
@@ -273,15 +315,15 @@ def process_reports_and_generate_excel(audit_logs,
         # Assuming report text is in the 'message' field
         report_text = log.get("message", "")
         if re.search(report_pattern, report_text, re.IGNORECASE):
-            logging.debug(
+            logging.info(
                 "Report text matched pattern for case ID: %s", case_id)
             report_json = get_report(base_url, headers, case_id)
             if report_json:
                 matched_reports.append(report_json)
         else:
-            logging.debug("No match for case ID: %s", case_id)
-            logging.debug("Report text: %s", report_text)
-            logging.debug("Pattern: %s", report_pattern)
+            logging.error("No match for case ID: %s", case_id)
+            logging.error("Report text: %s", report_text)
+            logging.error("Pattern: %s", report_pattern)
 
     if matched_reports:
         logging.info("Generating Excel file from matched reports.")
@@ -316,23 +358,36 @@ def extract_SNV_data(report_json):
     snvs_variants_info = []
     report_data = report_json.get("reportData", {})
     findings = report_data.get("biomarkersFindings", {})
-    logger.info(f"No. findings: {len(findings)}")
+    logging.info(f"No. findings: {len(findings)}")
     for finding in findings:
         # check for what variant
-        variant_type = finding.get("value", "N/A")
-        if "Copy Number Loss" in variant_type or "Copy Number Gain" in variant_type:
-            variant_type = "CNV"
-        elif "Insertion" in variant_type or "Deletion" in variant_type:
-            variant_type = "Indel"
-        elif "p." in variant_type:
+        variant_value = finding.get("value", "N/A")
+        variant_id = finding.get("variantId", "N/A")
+        if re.search(r"p\.", variant_value):
             variant_type = "SNV"
-        elif finding.get("name", "N/A") in ["TMB", "MSI"]:
+        elif re.search(r"CNV", variant_id):
+            variant_type = "CNV"
+            continue
+        elif re.search(r"Copy Number (Loss|Gain)", variant_value):
+            variant_type = "CNV"
+            continue
+        elif re.search(r"Insertion|Deletion|delins|del|ins|MNV", variant_value, re.IGNORECASE):
+            variant_type = "Indel"
+            continue
+        elif re.search(r"\bTMB\b|\bMSI\b", variant_id):
             variant_type = "TMB/MSI"
+            continue
+        elif re.search(r"Structural Variant", variant_id):
+            variant_type = "SV"
+            continue
+        elif re.search(r"GIS", finding.get("variantId", "N/A"), re.IGNORECASE):
+            variant_type = "GIS"
+            continue
         else:
             variant_type = "N/A"
-            logger.error(f"Unknown variant type: {variant_type}")
-            logger.error(finding)
-            raise ValueError("Unknown variant type")
+            logging.error(f"Unknown variant type: {variant_type}")
+            logging.error(finding)
+            raise RuntimeError("Unknown variant type")
         # extract variant information for SNV
         if variant_type == "SNV":
             gene = finding.get("name", "N/A")
@@ -345,9 +400,11 @@ def extract_SNV_data(report_json):
             protein = finding.get("value", "N/A")
             vaf = finding.get("readFrequency", {})
             try:
+                if isinstance(vaf, str):
+                    vaf = float(vaf)
                 vaf = round(vaf, 2)
-            except TypeError as e:
-                logger.error(f"Error: VAF calculation issue. See Error: {e}")
+            except (TypeError, ValueError) as e:
+                logging.error(f"Error: VAF calculation issue (SNV).  See Error: {e}")
 
             oncogenicity = ", ".join(
                 [a.get("actionabilityName", "N/A") for a in finding.get("actionabilities", [])])
@@ -385,22 +442,27 @@ def extract_CNV_indels_MNVs_data(report_json):
     indels_variants_info = []
     # Different logic for extracting CNV information
     # Extract relevant section of the JSON for CNV information
-    report = report_json.get("subjects", [])
-    if report:
-        report = report[0]  # First and only element in the list
+    subject = report_json.get("subjects", [])
+    if subject:
+        reports_json = subject[0]
+        logging.info(f"Report: {reports_json}")
     else:
         raise RuntimeError("No subjects found in the report. Truncated JSON.")
-    report = report.get("reports", [])
-    if report:
-        report = report[0]  # First and only element in the list
+    reports = reports_json.get("reports")
+    logging.info(f"Report: {reports}")
+    # Select only report
+    if len(reports) > 1:
+        logging.error(f"Invalid number of reports found. Reports = {len(reports)}")
+        raise RuntimeError(f"Invalid number of reports found. Reports = {len(reports)}")
     else:
-        raise RuntimeError("No reports found in the report. Truncated JSON.")
-    try:
-        variants = report.get("reportDetails", {}).get("variants", [])
-    except AttributeError as e:
-        logger.error(f"Error: CNV variants not found. See Error: {e}")
-        variants = []
+        report = reports[0]
     # Extract CNV information
+    variants = report.get("reportDetails", {}).get("variants", [])
+
+    # Extract CNV information
+    cnvs_variants_info = []
+    indels_variants_info = []
+
     for variant in variants:
         oncogenicity_list = []
         variant_type = variant.get("variantType", "Field not found")
@@ -410,9 +472,15 @@ def extract_CNV_indels_MNVs_data(report_json):
             fold_change = variant.get("foldChange", "N/A")
             gene = variant.get("gene", "N/A")
             transcript = variant.get("transcript", {}).get("name", "N/A")
-            for actionability in variant.get("associations", []):
-                oncogenicity_list.append(actionability.get(
-                    "associationInfo", {}).get("actionabilityName", None))
+            associations = variant.get("associations", [])
+            consequences_list = list(variant.get(
+                "transcript", {}).get("consequences", ["N/A"]))
+            consequences_list = [x.get("consequence", None)
+                                 for x in consequences_list]
+            consequences = ", ".join(str(item) for item in consequences_list)
+            oncogenicity_list = [
+                assoc.get("actionabilityName", "N/A") for assoc in associations
+                ]
             oncogenicity_list = set(oncogenicity_list)
             oncogenicity = ", ".join(oncogenicity_list)
             variant_info = {
@@ -420,26 +488,36 @@ def extract_CNV_indels_MNVs_data(report_json):
                 "fold_change": fold_change,
                 "Transcript": transcript,
                 "Oncogenicity": oncogenicity,
+                "Consequences": consequences,
             }
             cnvs_variants_info.append(variant_info)
-        elif re.search(r"Insertion|Deletion|Delins|MNV", variant_type):
+        elif re.search(r"Insertion|Deletion|Delins|MNV", variant_type, re.IGNORECASE):
             gene = variant.get("gene", "N/A")
+            transcript = variant.get("transcript", {}).get("name", "N/A")
+
             consequences_list = list(variant.get(
                 "transcript", {}).get("consequences", ["N/A"]))
             consequences_list = [x.get("consequence", None)
                                  for x in consequences_list]
             consequences = ", ".join(str(item) for item in consequences_list)
-            transcript = variant.get("transcript", {}).get("name", "N/A")
             dna_nomenclature = variant.get(
                 "transcript", {}).get("hgvsc", "N/A")
             protein = variant.get("transcript", {}).get("hgvsp", "N/A")
             vaf = variant.get("sampleMetrics", {})[0].get("vrf", "N/A")
             try:
+                if isinstance(vaf, str):
+                    vaf = float(vaf)
                 vaf = round(vaf, 2)
             except TypeError as e:
-                logger.error(f"Error: VAF calculation issue. See Error: {e}")
-            oncogenicity = ", ".join(
-                [a.get("actionabilityName", "N/A") for a in variant.get("associations", [])])
+                logging.error(f"Error: VAF calculation issue. See Error: {e}")
+
+            associations = variant.get("associations", [])
+            oncogenicity_list = [
+                assoc.get("actionabilityName", "N/A") for assoc in associations
+                ]
+            oncogenicity_list = set(oncogenicity_list)
+            oncogenicity = ", ".join(oncogenicity_list)
+
             variant_info = {
                 "Gene": gene,
                 "Consequences": consequences,
@@ -451,9 +529,9 @@ def extract_CNV_indels_MNVs_data(report_json):
             }
             indels_variants_info.append(variant_info)
         else:
-            logger.error(f"Unknown variant type: {variant_type}")
-            logger.error(variant)
-            raise ValueError("Unknown variant type")
+            logging.error(f"Unknown variant type: {variant_type}")
+            logging.error(variant)
+            # raise ValueError("Unknown variant type")
     return cnvs_variants_info, indels_variants_info
 
 
@@ -468,10 +546,10 @@ def extract_TMB_MSI_data(report_json):
 
     Returns
     -------
-    tmb_msi_metric_info : list
+    tmb_msi_metric_info : dict
         A list of dictionaries containing metric information for TMB/MSI.
     """
-    tmb_msi_metric_info = []
+
     # extract MSI and TMB metrics
 
     tmb_value, msi_value, msi_usable_sites, tmb_pct_exon_50X = "N/A", "N/A", "N/A", "N/A"
@@ -493,13 +571,12 @@ def extract_TMB_MSI_data(report_json):
         elif metric_name == "DNA Library QC Metrics for Small Variant Calling and TMB - % Exon 50X":
             tmb_pct_exon_50X = metric.get("value", "N/A")
 
-    tmb_msi_variant_info = {
+    tmb_msi_metric_info = {
         "TMB (mut/MB)": tmb_value,
         "MSI (% unstable sites) ": msi_value,
         "MSI Total Usable Sites": msi_usable_sites,
         "TMB % Exon 50X": tmb_pct_exon_50X,
     }
-    tmb_msi_metric_info.append(tmb_msi_variant_info)
 
     return tmb_msi_metric_info
 
@@ -562,19 +639,19 @@ def extract_data_from_report_json(report_json):
     tmb_msi_metric_info = extract_TMB_MSI_data(report_json)
 
     # Print extracted information - TODO: rm for deployement
-    print("Analyst Information:")
+    logging.debug("Analyst Information:")
     for key, value in case_info.items():
-        print(f"{key}: {value}")
+        logging.debug(f"{key}: {value}")
 
-    print("\nVariant Information:")
+    logging.debug("\nVariant Information:")
     for variant in snvs_variants_info:
-        print(variant)
+        logging.debug(variant)
     for variant in cnvs_variants_info:
-        print(variant)
+        logging.debug(variant)
     for variant in indels_variants_info:
-        print(variant)
+        logging.debug(variant)
     for variant in tmb_msi_metric_info:
-        print(variant)
+        logging.debug(variant)
 
     return sample_id, case_info, snvs_variants_info, \
         cnvs_variants_info, indels_variants_info, tmb_msi_metric_info
@@ -637,7 +714,7 @@ def json_extract_to_excel(sample_id, case_info,
     # Add an empty 'Tier' column to variant tables
     small_variants_df['Tier'] = ''
     cnvs_variants_info_df['Tier'] = ''
-    tmb_msi_metric_info_df = pd.DataFrame(tmb_msi_metric_info)
+    tmb_msi_metric_info_df = pd.DataFrame([tmb_msi_metric_info])
     # Write the extracted information to an Excel file
     with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx", engine='xlsxwriter') as writer:
         single_sheet_name = "Reported_Variants_and_Metrics"
@@ -678,31 +755,23 @@ def json_extract_to_excel(sample_id, case_info,
         write_section(case_info_df, "Analyst Information")
 
 
-# To deploy, we need to implement the following functions:
-# def move_reports_to_clingen(destination_dir):
-#     """
-#     Move reports to the ClinGen folder in the ICI API.
+def validate_env_vars():
+    """Validate required environment variables."""
+    required_vars = [
+        "ICI_BASE_URL",
+        "ICI_API_KEY",
+        "ICI_AUDIT_LOG_ENDPOINT",
+        "ICI_CASE_STATUS_UPDATED_EVENT",
+        "X_ILMN_WORKGROUP",
+        "STATUS_STRING",
+        "API_PAGE_SIZE",
+        "SCRIPT_START_TIME_FILE"
+    ]
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if missing_vars:
+        logging.error(f"Missing required environment variables: {', '.join(missing_vars)}")
+        raise RuntimeError("Missing environment variables. See logs.")
 
-#     Parameters
-#     ----------
-#     destination_dir: str
-#         The destination directory to move the reports.
-
-#     Returns
-#     -------
-#     None
-#     """
-#     # Move excel files in directory to ClinGen folder
-#     destination_dir = "/old_reports"
-#     os.makedirs(destination_dir, exist_ok=True)
-
-#     for f in os.listdir("."):
-#         if f.endswith(".xlsx"):
-#             dest_path = os.path.join(destination_dir, f)
-#             if os.path.exists(dest_path):
-#                 logging.warning(f"File already exists in the new directory: {dest_path}")
-#             else:
-#                 shutil.move(f, dest_path)
 
 def main():
     """
@@ -714,6 +783,7 @@ def main():
 
     # Get environment variables
     dotenv.load_dotenv()
+    validate_env_vars()
     base_url = os.getenv("ICI_BASE_URL")
     api_key = os.getenv("ICI_API_KEY")
     audit_log_endpoint = os.getenv("ICI_AUDIT_LOG_ENDPOINT")
@@ -726,7 +796,8 @@ def main():
 
     args = parse_args()
     previous_start_time, current_start_time = log_start_time(
-        script_start_time_file
+        script_start_time_file,
+        args
     )
 
     # Check if the user has provided a start time
