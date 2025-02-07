@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath(
 from generate_report_excels import parse_args, \
     log_start_time, get_audit_logs, \
     extract_data_from_report_json, \
-    setup_logging
+    setup_logging, send_outcome_notification
 
 """
 Tests for the generate_report_excels.py file
@@ -341,6 +341,69 @@ class TestApiCalls():
                 "pageSize": 1000
             }
         )
+
+class TestSendOutcomeNotification(unittest.TestCase):
+    @patch('generate_report_excels.get_collected_errors')
+    @patch('generate_report_excels.Slack.send')
+    def test_no_errors(self, mock_slack_send, mock_get_collected_errors):
+        mock_get_collected_errors.return_value = []
+        send_outcome_notification()
+        mock_slack_send.assert_called_once()
+        self.assertIn("No errors to notify.", self._get_stdout())
+
+    @patch('generate_report_excels.get_collected_errors')
+    @patch('generate_report_excels.Slack.send')
+    def test_runtime_errors(self, mock_slack_send, mock_get_collected_errors):
+        mock_get_collected_errors.return_value = [
+            "2025-02-07 13:53:42,140 - ERROR - Runtime Error: Some reports were not generated."
+            ]
+        send_outcome_notification()
+        mock_slack_send.assert_called_once()
+        self.assertIn(":gear: **Runtime Errors:**", self._get_stdout())
+        self.assertIn("Runtime Error: Some reports were not generated.", self._get_stdout())
+
+    @patch('generate_report_excels.get_collected_errors')
+    @patch('generate_report_excels.Slack.send')
+    def test_case_errors(self, mock_slack_send, mock_get_collected_errors):
+        mock_get_collected_errors.return_value = [
+            "2025-02-07 13:53:42,140 - ERROR - Case ID 12345 not found"
+            ]
+        send_outcome_notification()
+        mock_slack_send.assert_called_once()
+        self.assertIn(":x: **Case Errors:**", self._get_stdout())
+        self.assertIn("ID 12345 not found", self._get_stdout())
+
+    @patch('generate_report_excels.get_collected_errors')
+    @patch('generate_report_excels.Slack.send')
+    def test_variant_errors(self, mock_slack_send, mock_get_collected_errors):
+        mock_get_collected_errors.return_value = [
+            "2025-02-07 13:53:42,140 - ERROR - Unknown variant type: XYZ"
+            ]
+        send_outcome_notification()
+        mock_slack_send.assert_called_once()
+        self.assertIn(":x: **Variant Errors:**", self._get_stdout())
+        self.assertIn("Unknown variant type: XYZ", self._get_stdout())
+
+    @patch('generate_report_excels.get_collected_errors')
+    @patch('generate_report_excels.Slack.send')
+    def test_other_errors(self, mock_slack_send, mock_get_collected_errors):
+        mock_get_collected_errors.return_value = [
+            "2025-02-07 13:53:42,140 - ERROR - Some other error occurred"
+            ]
+        send_outcome_notification()
+        mock_slack_send.assert_called_once()
+        self.assertIn(":exclamation: **Other Errors:**", self._get_stdout())
+        self.assertIn("Some other error occurred", self._get_stdout())
+
+    def _get_stdout(self):
+        import sys
+        from io import StringIO
+        stdout = sys.stdout
+        sys.stdout = StringIO()
+        send_outcome_notification()
+        output = sys.stdout.getvalue()
+        sys.stdout = stdout
+        return output
 
 
 if __name__ == '__main__':
