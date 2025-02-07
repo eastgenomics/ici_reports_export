@@ -85,7 +85,7 @@ def setup_logging(stream_level=logging.INFO, error_file='errors.log'):
 def get_collected_errors():
     return error_collector.error_logs
 
-def send_error_notification():
+def send_outcome_notification():
     """
     Send a notification to Slack with the collected errors.
 
@@ -1048,16 +1048,9 @@ def main():
             print(report_name)
     else:
         logger.info("No relevant audit logs found.")
-    # Test errors
-    # case_id = "12345"
-    # e = "Test Error"
-    # logger.error(f"Case Error ({case_id}): error fetching report, {e}")
-    # case_id = "12345678"
-    # ici_id = "12345678ICI"
-    # logger.error(f"Case Error ({case_id}): No match for case ID. ICI id = {ici_id}")
-    # logger.error(f"Runtime Error: TEST ERROR")
+
     # Trigger the notification
-    send_error_notification()
+    send_outcome_notification()
 
     logger.info("Script execution completed.")
 
