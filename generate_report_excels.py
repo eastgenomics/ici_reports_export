@@ -110,7 +110,6 @@ def send_outcome_notification():
 
     # Sort errors into categories
     for error in errors:
-        print(errors)
         if "Unknown variant type" in error:
             variant_errors.append(error)
         elif "Case" in error:
@@ -148,7 +147,6 @@ def send_outcome_notification():
 
         notification = "\n".join(notification_parts)
         print("\n--- Sending Error Notification ---")
-        print(notification)
         Slack().send(message=notification, alert=True)
     else:
         Slack().send(
@@ -569,7 +567,6 @@ def extract_variant_data(report_json):
     indels_variants_info = []
 
     for variant in variants:
-        # print(f"Variant output = {variant}")
         oncogenicity_list = []
         associations = []
 
@@ -583,6 +580,8 @@ def extract_variant_data(report_json):
             hgvsc = variant.get(
                 "transcript", {}).get("hgvsc", "N/A")
             hgvsp = variant.get("transcript", {}).get("hgvsp", "N/A")
+            if hgvsp is None:
+                hgvsp = "p.?"
             vaf = variant.get("variantReadFrequency", None)
             try:
                 if vaf is None:
@@ -616,6 +615,17 @@ def extract_variant_data(report_json):
             snvs_variants_info.append(variant_info)
         elif re.search(r"Copy Number (Loss|Gain)", variant_type):
             fold_change = variant.get("foldChange", "N/A")
+            try:
+                if fold_change is None:
+                    logger.error(
+                        f"Case Error ({case_id}): Fold change not present for variant"
+                        )
+                    logger.info(f"Variant JSON: {variant}")
+                elif isinstance(fold_change, str):
+                    fold_change = float(fold_change)
+                fold_change = round(fold_change, 2)
+            except (TypeError, ValueError) as e:
+                logger.error(f"Case Error ({case_id}): Fold change calculation issue. See Error: {e}")
             gene = variant.get("gene", "N/A")
 
             transcript = variant.get("transcript", {}).get("name", "N/A")
@@ -643,6 +653,8 @@ def extract_variant_data(report_json):
             hgvsc = variant.get(
                 "transcript", {}).get("hgvsc", "N/A")
             hgvsp = variant.get("transcript", {}).get("hgvsp", "N/A")
+            if hgvsp is None:
+                hgvsp = "p.?"
             vaf = variant.get("variantReadFrequency", None)
             try:
                 if vaf is None:
@@ -876,15 +888,18 @@ def write_section(writer, df, header, start_col=0, start_row=0):
             for c in range(len(df.columns)):
                 col_name = df.columns[c]
 
-                # If this is the “Estimated copy number” column, 
+                # Solution 1: Write the formula to the cell
+                # with hard-coded value.
+
+                # If this is the “Estimated copy number” column,
                 # populate it with the “Fold Change” value for this row
-                if col_name == "Estimated copy number" and "Fold Change" in df.columns:
-                    fold_change_val = df.iloc[r][df.columns.get_loc("Fold Change")]
-                    worksheet.write(start_row + r, start_col + c, fold_change_val, arial_format)
-                else:
-                    # Normal cell write
-                    value = df.iloc[r, c]
-                    worksheet.write(start_row + r, start_col + c, value, arial_format)
+                # if col_name == "Estimated copy number" and "Fold Change" in df.columns:
+                #     fold_change_val = df.iloc[r][df.columns.get_loc("Fold Change")]
+                #     formula = f'=ROUND(IF({fold_change_val}="","", (({fold_change_val}*200)-2*(100-$N$3))/$N$3), 2)'
+                #     worksheet.write(start_row + r, start_col + c, formula, arial_format)
+
+                # Solution 2: Write the formula to the cell
+                # with hard-coded cell where value is.
 
                 # If this is the “Estimated copy number” column, write the formula
                 if col_name == "Estimated copy number":
@@ -896,6 +911,10 @@ def write_section(writer, df, header, start_col=0, start_row=0):
 
                     # Write the formula
                     worksheet.write(start_row + r, start_col + c, formula, arial_format)
+                else:
+                    # Normal cell write
+                    value = df.iloc[r, c]
+                    worksheet.write(start_row + r, start_col + c, value, arial_format)
 
         start_row += len(df) + 2
 
