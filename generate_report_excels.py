@@ -125,35 +125,35 @@ def send_outcome_notification():
         if runtime_errors:
             notification_parts.append(":gear: **Runtime Errors:**")
             for err in runtime_errors:
-                err_part = err.split("ERROR")[1].strip(" -")
+                err_part = err.split("ERROR")[1].strip(" -") if "ERROR" in err else err
                 notification_parts.append(err_part)
 
         if case_errors:
             notification_parts.append(":x: **Case Errors:**")
             for err in case_errors:
-                err_part = err.split("ERROR")[1].strip(" -")
+                err_part = err.split("ERROR")[1].strip(" -") if "ERROR" in err else err
                 notification_parts.append(err_part)
 
         if variant_errors:
             notification_parts.append(":x: **Variant Errors:**")
             for err in variant_errors:
-                err_part = err.split("ERROR")[1].strip(" -")
+                err_part = err.split("ERROR")[1].strip(" -") if "ERROR" in err else err
                 notification_parts.append(err_part)
 
         if other_errors:
             notification_parts.append(":exclamation: **Other Errors:**")
             for err in other_errors:
-                err_part = err.split("ERROR")[1].strip(" -")
+                err_part = err.split("ERROR")[1].strip(" -") if "ERROR" in err else err
                 notification_parts.append(err_part)
 
         notification = "\n".join(notification_parts)
         print("\n--- Sending Error Notification ---")
         print(notification)
-        #Slack().send(message=notification, alert=True)
+        Slack().send(message=notification, alert=True)
     else:
-        #Slack().send(
-        #    message="Ici-report-export script ran successfully.", log=True
-        #    )
+        Slack().send(
+           message="Ici-report-export script ran successfully.", log=True
+           )
         print("No errors to notify.")
 
 
@@ -802,6 +802,106 @@ def extract_data_from_report_json(report_json):
         cnvs_variants_info, indels_variants_info, tmb_msi_metric_info
 
 
+def colnum_to_excel_col(col_num):
+    """Convert a zero-based column index to an Excel-style column letter."""
+    col_str = ""
+    while col_num >= 0:
+        col_str = chr(col_num % 26 + ord('A')) + col_str
+        col_num = col_num // 26 - 1
+    return col_str
+
+
+def write_section(writer, df, header, start_col=0, start_row=0):
+    """
+    Write a section to an Excel file.
+    This creates a table with formatting containing metrics,
+    variants or cass information.
+
+    Parameters
+    ----------
+    writer : ExcelWriter
+        The ExcelWriter object to write the section to.
+    df : pandas.DataFrame
+        The DataFrame containing the data to write.
+    header : str
+        The header for the section.
+    start_col : int, optional
+        The column to start writing in the excel, by default 0
+    start_row : int, optional
+        The row to start writing in the excel, by default 0
+
+    Returns
+    -------
+    start_row: int
+        The last row written to by this function.
+        This is used to an input of where to start writing the next section.
+    """
+    worksheet = writer.sheets["Reported_Variants_and_Metrics"]
+    workbook = writer.book
+
+    arial_format = workbook.add_format(
+        {'font_name': 'Arial', 'border': 1,
+         'font_size': 10, 'align': 'center'}
+    )
+    merge_format = workbook.add_format(
+        {'font_name': 'Arial', 'font_size': 10,
+         'border': 2, 'bold': True, 'align': 'center',
+         'valign': 'vcenter'}
+    )
+    header_format = workbook.add_format(
+        {'font_name': 'Arial', 'border': 2,
+         'font_size': 10, 'bold': True}
+    )
+
+    num_cols = len(df.columns) if not df.empty else 8
+    worksheet.merge_range(start_row, start_col, start_row,
+                          start_col + num_cols - 1, header, merge_format)
+    start_row += 1
+
+    if df.empty:
+        worksheet.merge_range(
+            start_row, start_col, start_row,
+            start_col + num_cols - 1,
+            "No variants reported", merge_format)
+        start_row += 2
+    else:
+        # Write the headers
+        for col_num, col_name in enumerate(df.columns):
+            worksheet.write(start_row, start_col + col_num,
+                            col_name, header_format)
+        start_row += 1
+
+        # Write the data row by row
+        for r in range(len(df)):
+            for c in range(len(df.columns)):
+                col_name = df.columns[c]
+
+                # If this is the “Estimated copy number” column, 
+                # populate it with the “Fold Change” value for this row
+                if col_name == "Estimated copy number" and "Fold Change" in df.columns:
+                    fold_change_val = df.iloc[r][df.columns.get_loc("Fold Change")]
+                    worksheet.write(start_row + r, start_col + c, fold_change_val, arial_format)
+                else:
+                    # Normal cell write
+                    value = df.iloc[r, c]
+                    worksheet.write(start_row + r, start_col + c, value, arial_format)
+
+                # If this is the “Estimated copy number” column, write the formula
+                if col_name == "Estimated copy number":
+                    # Compute the Excel row (1-based) for the *current* row in the sheet
+                    excel_row = start_row + r + 1  # Because start_row is already incremented by 1 for the header
+                    # Compute the column letter for the "Fold Change" column
+                    fold_change_col = colnum_to_excel_col(start_col + c + 3)  # Adjust the offset as needed
+                    formula = f'=ROUND(IF({fold_change_col}{excel_row}="","", (({fold_change_col}{excel_row}*200)-2*(100-$N$3))/$N$3), 2)'
+
+                    # Write the formula
+                    worksheet.write(start_row + r, start_col + c, formula, arial_format)
+
+        start_row += len(df) + 2
+
+    return start_row
+
+
 def json_extract_to_excel(sample_id, case_info,
                           snvs_variants_info, cnvs_variants_info,
                           indels_variants_info, tmb_msi_metric_info
@@ -856,6 +956,23 @@ def json_extract_to_excel(sample_id, case_info,
     indels_variants_info_df = pd.DataFrame(indels_variants_info)
     small_variants_df = pd.concat(
         [snvs_variants_info_df, indels_variants_info_df], ignore_index=True)
+    # Formatting
+    # Desired columns order for CNVs
+    desired_columns = [
+        "Gene",
+        "Consequence",
+        "Transcript",
+        "Estimated copy number",  # Will hold a formula
+        "Tier",
+        " ",  # Gap column
+        "Fold Change",
+        "TCC"
+    ]
+    cnvs_variants_info_df = cnvs_variants_info_df.reindex(columns=desired_columns, fill_value="")
+    # Assign a placeholder formula to the 'Estimated copy number' column
+    cnvs_variants_info_df["Estimated copy number"] = "=SOME_EXCEL_FORMULA()"
+    case_info_df["%TCC"] = "" # Add an empty column for %TCC
+
     # Add an empty 'Tier' column to variant tables
     small_variants_df['Tier'] = ''
     cnvs_variants_info_df['Tier'] = ''
@@ -868,58 +985,15 @@ def json_extract_to_excel(sample_id, case_info,
         writer.sheets[single_sheet_name] = worksheet
         row_pos = 0
 
-        # Helper function to write a section header and DataFrame
-        def write_section(df, header):
-            nonlocal row_pos
-            workbook = writer.book
-            worksheet = writer.sheets[single_sheet_name]
-            arial_format = workbook.add_format(
-                {'font_name': 'Arial', 'border': 1,
-                 'font_size': 10, 'align': 'center'}
-                )
-            merge_format = workbook.add_format(
-                {'font_name': 'Arial', 'font_size': 10, 'border': 2,
-                 'bold': True, 'align': 'center', 'valign': 'vcenter'}
-                )
-            header_format = workbook.add_format(
-                {'font_name': 'Arial', 'border': 2,
-                 'font_size': 10, 'bold': True}
-            )
-            # Set column widths
-            for i, col in enumerate(df.columns):
-                max_len = max(df[col].astype(str).map(len).max(), len(col)) + 3
-                worksheet.set_column(i, i, max_len)
-            num_cols = len(df.columns) if not df.empty else 8
-            worksheet.merge_range(row_pos, 0, row_pos,
-                      num_cols - 1, header, merge_format)
-            row_pos += 1
-
-            if df.empty:
-                worksheet.merge_range(
-                    row_pos, 0, row_pos, num_cols - 1, "No variants reported", merge_format)
-                row_pos += 2
-            else:
-                # Write the headers with the header format
-                for col_num, value in enumerate(df.columns.values):
-                    worksheet.write(row_pos, col_num, value, header_format)
-                row_pos += 1
-                # df.to_excel(writer, sheet_name=single_sheet_name,
-                #         startrow=row_pos, startcol=0, index=False)
-                for row in range(row_pos, row_pos + len(df)):
-                    for col in range(len(df.columns)):
-                        worksheet.write(
-                            row, col, df.iloc[row - row_pos, col], arial_format
-                            )
-                row_pos += len(df) + 2
-
-            # Increase the width for columns B and C (indices 1 and 2)
-            worksheet.set_column(1, 1, 20)  # Column B
-            worksheet.set_column(2, 2, 20)  # Column C
-
-        write_section(small_variants_df, "Small Variants")
-        write_section(cnvs_variants_info_df, "CNVs")
-        write_section(tmb_msi_metric_info_df, "TMB/MSI Metrics")
-        write_section(case_info_df, "Case Information")
+        # Increase the width for columns B and C (indices 1 and 2)
+        worksheet.set_column(1, 1, 20)  # Column B
+        worksheet.set_column(2, 2, 20)  # Column C
+        row_pos = 0
+        row_pos = write_section(writer, small_variants_df, "Small Variants", start_col=0, start_row=row_pos)
+        row_pos = write_section(writer, cnvs_variants_info_df, "CNVs", start_col=0, start_row=row_pos)
+        row_pos = write_section(writer, tmb_msi_metric_info_df, "TMB/MSI Metrics", start_col=0, start_row=row_pos)
+        row_pos = 0 # Overwrite start position for next section
+        row_pos = write_section(writer, case_info_df, "Case Information", start_col=10, start_row=row_pos)
 
 
 def validate_env_vars():
