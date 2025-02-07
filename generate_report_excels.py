@@ -893,23 +893,13 @@ def write_section(writer, df, header, start_col=0, start_row=0):
 
                 # If this is the “Estimated copy number” column,
                 # populate it with the “Fold Change” value for this row
-                # if col_name == "Estimated copy number" and "Fold Change" in df.columns:
-                #     fold_change_val = df.iloc[r][df.columns.get_loc("Fold Change")]
-                #     formula = f'=ROUND(IF({fold_change_val}="","", (({fold_change_val}*200)-2*(100-$N$3))/$N$3), 2)'
-                #     worksheet.write(start_row + r, start_col + c, formula, arial_format)
-
-                # Solution 2: Write the formula to the cell
-                # with hard-coded cell where value is.
-
-                # If this is the “Estimated copy number” column, write the formula
-                if col_name == "Estimated copy number":
-                    # Compute the Excel row (1-based) for the *current* row in the sheet
-                    excel_row = start_row + r + 1  # Because start_row is already incremented by 1 for the header
-                    # Compute the column letter for the "Fold Change" column
-                    fold_change_col = colnum_to_excel_col(start_col + c + 3)  # Adjust the offset as needed
-                    formula = f'=ROUND(IF({fold_change_col}{excel_row}="","", (({fold_change_col}{excel_row}*200)-2*(100-$N$3))/$N$3), 2)'
-
-                    # Write the formula
+                if col_name == "Estimated copy number" and "Fold Change" in df.columns:
+                    fold_change_val = df.iloc[r][df.columns.get_loc("Fold Change")]
+                    formula = f'=ROUND(IF({fold_change_val}="","", (({fold_change_val}*200)-2*(100-$N$3))/$N$3), 2)'
+                    worksheet.write(start_row + r, start_col + c, formula, arial_format)
+                elif col_name == "Fold Change":
+                    fold_change_val = df.iloc[r, c]
+                    formula = f'=ROUND({fold_change_val}, 2)'
                     worksheet.write(start_row + r, start_col + c, formula, arial_format)
                 else:
                     # Normal cell write
