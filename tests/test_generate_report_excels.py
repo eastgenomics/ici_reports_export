@@ -16,12 +16,13 @@ sys.path.insert(0, os.path.abspath(
 
 from generate_report_excels import parse_args, \
     log_start_time, get_audit_logs, \
-    extract_data_from_report_json
+    extract_data_from_report_json, \
+    setup_logging
 
 """
 Tests for the generate_report_excels.py file
 """
-
+logger, error_collector = setup_logging()
 
 @fixture
 def mock_args():
@@ -221,8 +222,11 @@ class TestLoggingTime():
     def test_log_start_time(self, time_value):
         with patch('generate_report_excels.dt') as mock_dt:
             mock_dt.datetime.now.return_value.strftime.return_value = time_value
+            mock_args = argparse.Namespace(created_before=None, created_after=None)
             prev_time, current_time = log_start_time(
-                "tests/test_data/script_start_time.log")
+                "tests/test_data/script_start_time.log",
+                mock_args
+                )
             assert current_time == time_value
 
 
