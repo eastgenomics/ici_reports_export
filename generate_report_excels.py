@@ -353,7 +353,7 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
         logger.error(f"Runtime Error, request exception while fetching audit logs: {e}")
         raise RequestException(
             f"Error fetching audit logs. {e}"
-        )
+        ) from e
 
 
 def get_report(base_url, headers, case_id):
