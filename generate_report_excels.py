@@ -524,7 +524,7 @@ def select_association_consequences(associations):
 
 def extract_variant_data(report_json):
     """
-    Extract CNV and Indel data from the report JSON.
+    Extract SNV, CNV and Indel data from the report JSON.
 
     Parameters
     ----------
@@ -533,6 +533,8 @@ def extract_variant_data(report_json):
 
     Returns
     -------
+    snvs_variants_info : list
+        A list of dictionaries containing variant information for SNV.
     cnvs_variants_info : list
         A list of dictionaries containing variant information for CNV.
     indels_variants_info : list
@@ -615,17 +617,12 @@ def extract_variant_data(report_json):
             snvs_variants_info.append(variant_info)
         elif re.search(r"Copy Number (Loss|Gain)", variant_type):
             fold_change = variant.get("foldChange", "N/A")
-            try:
-                if fold_change is None:
-                    logger.error(
-                        f"Case Error ({case_id}): Fold change not present for variant"
-                        )
-                    logger.info(f"Variant JSON: {variant}")
-                elif isinstance(fold_change, str):
-                    fold_change = float(fold_change)
-                fold_change = round(fold_change, 2)
-            except (TypeError, ValueError) as e:
-                logger.error(f"Case Error ({case_id}): Fold change calculation issue. See Error: {e}")
+
+            if fold_change is None:
+                logger.error(
+                    f"Case Error ({case_id}): Fold change not present for variant"
+                    )
+
             gene = variant.get("gene", "N/A")
 
             transcript = variant.get("transcript", {}).get("name", "N/A")
@@ -895,11 +892,13 @@ def write_section(writer, df, header, start_col=0, start_row=0):
                 # populate it with the “Fold Change” value for this row
                 if col_name == "Estimated copy number" and "Fold Change" in df.columns:
                     fold_change_val = df.iloc[r][df.columns.get_loc("Fold Change")]
-                    formula = f'=ROUND(IF({fold_change_val}="","", (({fold_change_val}*200)-2*(100-$N$3))/$N$3), 2)'
+                    if fold_change_val is None or fold_change_val == "N/A":
+                        formula = "N/A"
+                    formula = f'=ROUND(((({fold_change_val}*200)-2*(100-$N$3))/$N$3), 2)'
                     worksheet.write(start_row + r, start_col + c, formula, arial_format)
                 elif col_name == "Fold Change":
                     fold_change_val = df.iloc[r, c]
-                    formula = f'=ROUND({fold_change_val}, 2)'
+                    formula = f'=ROUND(({fold_change_val}), 2)'
                     worksheet.write(start_row + r, start_col + c, formula, arial_format)
                 else:
                     # Normal cell write
@@ -975,12 +974,12 @@ def json_extract_to_excel(sample_id, case_info,
         "Tier",
         " ",  # Gap column
         "Fold Change",
-        "TCC"
     ]
     cnvs_variants_info_df = cnvs_variants_info_df.reindex(columns=desired_columns, fill_value="")
     # Assign a placeholder formula to the 'Estimated copy number' column
     cnvs_variants_info_df["Estimated copy number"] = "=SOME_EXCEL_FORMULA()"
     case_info_df["%TCC"] = "" # Add an empty column for %TCC
+    case_info_df["Sample_Id"] = sample_id
 
     # Add an empty 'Tier' column to variant tables
     small_variants_df['Tier'] = ''
