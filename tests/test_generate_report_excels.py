@@ -1,6 +1,9 @@
 import sys
 import os
 import json
+from io import StringIO
+from contextlib import contextmanager
+
 
 from unittest.mock import patch, Mock
 import unittest
@@ -342,68 +345,74 @@ class TestApiCalls():
             }
         )
 
+
+
 class TestSendOutcomeNotification(unittest.TestCase):
     @patch('generate_report_excels.get_collected_errors')
     @patch('generate_report_excels.Slack.send')
     def test_no_errors(self, mock_slack_send, mock_get_collected_errors):
         mock_get_collected_errors.return_value = []
-        send_outcome_notification()
-        mock_slack_send.assert_called_once()
-        self.assertIn("No errors to notify.", self._get_stdout())
+        with self.capture_stdout() as stdout:
+            send_outcome_notification()
+        output = stdout.getvalue()
+        mock_slack_send.assert_called_once_with(message="Ici-report-export script ran successfully.", log=True)
+        self.assertIn("No errors to notify.", output)
 
     @patch('generate_report_excels.get_collected_errors')
     @patch('generate_report_excels.Slack.send')
     def test_runtime_errors(self, mock_slack_send, mock_get_collected_errors):
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Runtime Error: Some reports were not generated."
-            ]
+        ]
+        expected_notification = ":gear: **Runtime Errors:**\nRuntime Error: Some reports were not generated."
         send_outcome_notification()
-        mock_slack_send.assert_called_once()
-        self.assertIn(":gear: **Runtime Errors:**", self._get_stdout())
-        self.assertIn("Runtime Error: Some reports were not generated.", self._get_stdout())
+        mock_slack_send.assert_called_once_with(message=expected_notification, alert=True)
+
 
     @patch('generate_report_excels.get_collected_errors')
     @patch('generate_report_excels.Slack.send')
     def test_case_errors(self, mock_slack_send, mock_get_collected_errors):
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Case ID 12345 not found"
-            ]
+        ]
+        expected_notification = ":x: **Case Errors:**\nCase ID 12345 not found"
+
         send_outcome_notification()
-        mock_slack_send.assert_called_once()
-        self.assertIn(":x: **Case Errors:**", self._get_stdout())
-        self.assertIn("ID 12345 not found", self._get_stdout())
+
+        mock_slack_send.assert_called_once_with(message=expected_notification, alert=True)
+
 
     @patch('generate_report_excels.get_collected_errors')
     @patch('generate_report_excels.Slack.send')
     def test_variant_errors(self, mock_slack_send, mock_get_collected_errors):
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Unknown variant type: XYZ"
-            ]
+        ]
+        expected_notification = ":x: **Variant Errors:**\nUnknown variant type: XYZ"
         send_outcome_notification()
-        mock_slack_send.assert_called_once()
-        self.assertIn(":x: **Variant Errors:**", self._get_stdout())
-        self.assertIn("Unknown variant type: XYZ", self._get_stdout())
+        mock_slack_send.assert_called_once_with(message=expected_notification, alert=True)
+
 
     @patch('generate_report_excels.get_collected_errors')
     @patch('generate_report_excels.Slack.send')
     def test_other_errors(self, mock_slack_send, mock_get_collected_errors):
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Some other error occurred"
-            ]
+        ]
+        expected_notification = ":exclamation: **Other Errors:**\nSome other error occurred"
         send_outcome_notification()
-        mock_slack_send.assert_called_once()
-        self.assertIn(":exclamation: **Other Errors:**", self._get_stdout())
-        self.assertIn("Some other error occurred", self._get_stdout())
+        mock_slack_send.assert_called_once_with(message=expected_notification, alert=True)
 
-    def _get_stdout(self):
-        import sys
-        from io import StringIO
-        stdout = sys.stdout
+
+    @contextmanager
+    def capture_stdout(self):
+        old_stdout = sys.stdout
         sys.stdout = StringIO()
-        send_outcome_notification()
-        output = sys.stdout.getvalue()
-        sys.stdout = stdout
-        return output
+        try:
+            yield sys.stdout
+        finally:
+            sys.stdout = old_stdout
+
 
 
 if __name__ == '__main__':
