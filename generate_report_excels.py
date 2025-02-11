@@ -548,12 +548,10 @@ def extract_variant_data(report_json):
     subject = report_json.get("subjects", [])
     if subject:
         reports_json = subject[0]
-        # logger.info(f"Report: {reports_json}")
     else:
         logger.error(f"Case Error ({case_id}): No subjects found in the report. Truncated JSON.")
 
     reports = reports_json.get("reports")
-    # logger.info(f"Report: {reports}")
     # Select only report
     if len(reports) > 1:
         logger.error(f"Case Error ({case_id}): Invalid number of reports found. Reports = {len(reports)}")
@@ -574,7 +572,11 @@ def extract_variant_data(report_json):
 
         variant_type = variant.get("variantType", "Field not found")
         if variant_type is None:
-            logger.info(f"{variant}")
+            logger.error(
+                f"Case Error ({case_id}): Variant type not found for variant."
+                f"Variant JSON: {variant}"
+                )
+
             continue
         elif variant_type == "SNV":
             gene = variant.get("gene", "N/A")
@@ -899,6 +901,10 @@ def write_section(writer, df, header, start_col=0, start_row=0):
                 elif col_name == "Fold Change":
                     fold_change_val = df.iloc[r, c]
                     formula = f'=ROUND(({fold_change_val}), 2)'
+                    worksheet.write(start_row + r, start_col + c, formula, arial_format)
+                elif col_name == "TMB (mut/MB)":
+                    value = df.iloc[r, c]
+                    formula = f'=ROUND(({value}), 2)'
                     worksheet.write(start_row + r, start_col + c, formula, arial_format)
                 else:
                     # Normal cell write
