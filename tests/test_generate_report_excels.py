@@ -22,6 +22,8 @@ from generate_report_excels import parse_args, \
     extract_data_from_report_json, \
     setup_logging, send_outcome_notification
 
+from utils.notify_slack import SlackClient
+
 """
 Tests for the generate_report_excels.py file
 """
@@ -348,61 +350,60 @@ class TestApiCalls():
 
 
 class TestSendOutcomeNotification(unittest.TestCase):
+    @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
-    @patch('generate_report_excels.Slack.send')
-    def test_no_errors(self, mock_slack_send, mock_get_collected_errors):
+    def test_no_errors(self, mock_get_collected_errors, mock_slack_post_message):
         mock_get_collected_errors.return_value = []
         with self.capture_stdout() as stdout:
             send_outcome_notification()
         output = stdout.getvalue()
-        mock_slack_send.assert_called_once_with(message="Ici-report-export script ran successfully.", log=True)
+        mock_slack_post_message.assert_called_once_with(message="Ici-report-export script ran successfully.",
+                                                        channel="log")
         self.assertIn("No errors to notify.", output)
 
+    @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
-    @patch('generate_report_excels.Slack.send')
-    def test_runtime_errors(self, mock_slack_send, mock_get_collected_errors):
+    def test_runtime_errors(self, mock_get_collected_errors, mock_slack_post_message):
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Runtime Error: Some reports were not generated."
         ]
         expected_notification = ":gear: **Runtime Errors:**\nRuntime Error: Some reports were not generated."
         send_outcome_notification()
-        mock_slack_send.assert_called_once_with(message=expected_notification, alert=True)
+        mock_slack_post_message.assert_called_once_with(message=expected_notification,
+                                                        channel="alerts")
 
-
+    @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
-    @patch('generate_report_excels.Slack.send')
-    def test_case_errors(self, mock_slack_send, mock_get_collected_errors):
+    def test_case_errors(self, mock_get_collected_errors, mock_slack_post_message):
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Case ID 12345 not found"
         ]
         expected_notification = ":x: **Case Errors:**\nCase ID 12345 not found"
-
         send_outcome_notification()
+        mock_slack_post_message.assert_called_once_with(message=expected_notification,
+                                                        channel="alerts")
 
-        mock_slack_send.assert_called_once_with(message=expected_notification, alert=True)
-
-
+    @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
-    @patch('generate_report_excels.Slack.send')
-    def test_variant_errors(self, mock_slack_send, mock_get_collected_errors):
+    def test_variant_errors(self, mock_get_collected_errors, mock_slack_post_message):
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Unknown variant type: XYZ"
         ]
         expected_notification = ":x: **Variant Errors:**\nUnknown variant type: XYZ"
         send_outcome_notification()
-        mock_slack_send.assert_called_once_with(message=expected_notification, alert=True)
+        mock_slack_post_message.assert_called_once_with(message=expected_notification,
+                                                        channel="alerts")
 
-
+    @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
-    @patch('generate_report_excels.Slack.send')
-    def test_other_errors(self, mock_slack_send, mock_get_collected_errors):
+    def test_other_errors(self, mock_get_collected_errors, mock_slack_post_message):
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Some other error occurred"
         ]
         expected_notification = ":exclamation: **Other Errors:**\nSome other error occurred"
         send_outcome_notification()
-        mock_slack_send.assert_called_once_with(message=expected_notification, alert=True)
-
+        mock_slack_post_message.assert_called_once_with(message=expected_notification,
+                                                        channel="alerts")
 
     @contextmanager
     def capture_stdout(self):
