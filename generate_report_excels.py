@@ -23,7 +23,7 @@ from requests.exceptions import RequestException
 from functools import reduce
 
 # Local imports
-from utils.notify_slack import Slack
+from utils.notify_slack import SlackClient
 
 class ErrorCollectorHandler(logging.Handler):
     def __init__(self):
@@ -147,11 +147,11 @@ def send_outcome_notification():
 
         notification = "\n".join(notification_parts)
         print("\n--- Sending Error Notification ---")
-        Slack().send(message=notification, alert=True)
+        slack_client = SlackClient()
+        slack_client.post_message(message=notification, channel="alerts")
     else:
-        Slack().send(
-           message="Ici-report-export script ran successfully.", log=True
-           )
+        slack_client = SlackClient()
+        slack_client.post_message(message="Ici-report-export script ran successfully.", channel="log")
         print("No errors to notify.")
 
 
@@ -1065,10 +1065,13 @@ def check_failed_audit_logs(matched_reports, search_directory='/home/rswilson1/D
     if matched_reports_count != len(excel_files_generated_today):
         logger.error(f"Runtime Error: Reports to be generated: {matched_reports_count}")
         logger.error(f"Runtime Error: Excel files generated today: {excel_files_generated_today}")
-        logger.error("Runtime Error: Some reports were not generated.")
-    logger.info("Correct number of reports generated.")
-    logger.info(f"Excel files generated today: {excel_files_generated_today}")
-    # Slack().send(message="Correct number of reports generated.", log=True)
+        logger.error("Runtime Error: Incorrect number of reports present.")
+    else:
+        logger.info("Correct number of reports generated.")
+        logger.info(f"Excel files generated today: {excel_files_generated_today}")
+        slack_client = SlackClient()
+        slack_client.post_message(message="Correct number of reports generated.", channel="log")
+
     return matched_reports_count, report_names
 
 

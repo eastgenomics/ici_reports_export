@@ -3,74 +3,45 @@ import sys
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+import json
+from dotenv import load_dotenv
 
-class Slack():
-    """
-    Slack related functions
-    """
-    def __init__(self) -> None:
-        self.slack_token = os.getenv("SLACK_TOKEN")
-        self.slack_log_channel = os.getenv("SLACK_LOG_CHANNEL")
-        self.slack_alert_channel = os.getenv("SLACK_ALERT_CHANNEL")
+class SlackClient:
+    def __init__(self):
+        load_dotenv()  # Load environment variables
+        self.webhooks = {
+            "log": os.getenv("SLACK_LOG_WEBHOOK"),
+            "alerts": os.getenv("SLACK_ALERTS_WEBHOOK")
+        }
+
+        # Ensure webhooks exist
+        if not self.webhooks["log"] or not self.webhooks["alerts"]:
+            raise ValueError("One or both Slack webhook URLs are missing in the environment")
 
 
-    def send(self, message, log=False, alert=False):
+    def post_message(self, message, channel) -> None:
         """
-        Send notification to Slack
+        Post message to provided webhook URL, used for posting messages to
+        specific Slack channel
 
         Parameters
         ----------
         message : str
-            message to send to Slack
-        log : bool
-            if to send message to specified Slack log channel
-        alert : bool
-            if to send message to specified Slack alert channel
+            message to post to Slack
+        channel : str
+            channel to post message to
+
+        Outputs
+        -------
+        Sends POST request to Slack webhook URL.
         """
-        if not log and not alert:
-            # only one should be specified
-            raise RuntimeError(
-                "ERROR: No Slack channel specified for sending alert"
-            )
+        webhook_url = self.webhooks.get(channel)
 
-        if log and alert:
-            raise RuntimeError(
-                "ERROR: both log and alert specified for Slack channel."
-            )
+        if not webhook_url:
+            raise ValueError(f"Invalid webhook channel: {channel}")
 
-        if log:
-            channel = self.slack_log_channel
-        else:
-            channel = self.slack_alert_channel
+        payload = {"text": message}
+        response = requests.post(webhook_url, json=payload, timeout=30)
 
-            message = (
-                f":warning: *Error in ici-report-export*\n\n"
-                f"Error: {message}"
-            )
-
-        print(
-            f"Sending message to Slack channel {channel}\n\n{message}",
-            sys.stderr
-        )
-
-        http = requests.Session()
-        retries = Retry(total=5, backoff_factor=10, allowed_methods=['POST'])
-        http.mount("https://", HTTPAdapter(max_retries=retries))
-
-        try:
-            response = http.post(
-                'https://slack.com/api/chat.postMessage', {
-                    'token': self.slack_token,
-                    'channel': f"#{channel}",
-                    'text': message
-                }).json()
-
-            if not response['ok']:
-                # error in sending slack notification
-                print(
-                    f"Error in sending slack notification: {response.get('error')}"
-                )
-        except Exception as err:
-            print(
-                f"Error in sending post request for slack notification: {err}"
-            )
+        if response.status_code != 200:
+            raise Exception(f"Request failed with status {response.status_code}, {response.text}")
