@@ -25,6 +25,7 @@ from functools import reduce
 # Local imports
 from utils.notify_slack import SlackClient
 
+
 class ErrorCollectorHandler(logging.Handler):
     def __init__(self):
         super().__init__(level=logging.ERROR)
@@ -33,6 +34,7 @@ class ErrorCollectorHandler(logging.Handler):
     def emit(self, record):
         log_entry = self.format(record)
         self.error_logs.append(log_entry)
+
 
 def setup_logging(stream_level=logging.INFO, error_file='errors.log'):
     """
@@ -61,13 +63,16 @@ def setup_logging(stream_level=logging.INFO, error_file='errors.log'):
     # Stream handler for stdout (Docker logs)
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setLevel(stream_level)
-    stream_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    stream_formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(message)s')
     stream_handler.setFormatter(stream_formatter)
 
     # File handler for errors (collated error log)
     error_handler = logging.FileHandler('ici_reports.log')
-    error_handler.setLevel(logging.ERROR)  # Only log errors and above to the file
-    error_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    # Only log errors and above to the file
+    error_handler.setLevel(logging.ERROR)
+    error_formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(message)s')
     error_handler.setFormatter(error_formatter)
 
     # Custom error collector handler
@@ -82,8 +87,11 @@ def setup_logging(stream_level=logging.INFO, error_file='errors.log'):
     return logger, error_collector
 
 # Function to retrieve all collected errors
+
+
 def get_collected_errors():
     return error_collector.error_logs
+
 
 def send_outcome_notification():
     """
@@ -124,25 +132,29 @@ def send_outcome_notification():
         if runtime_errors:
             notification_parts.append(":gear: **Runtime Errors:**")
             for err in runtime_errors:
-                err_part = err.split("ERROR")[1].strip(" -") if "ERROR" in err else err
+                err_part = err.split("ERROR")[1].strip(
+                    " -") if "ERROR" in err else err
                 notification_parts.append(err_part)
 
         if case_errors:
             notification_parts.append(":x: **Case Errors:**")
             for err in case_errors:
-                err_part = err.split("ERROR")[1].strip(" -") if "ERROR" in err else err
+                err_part = err.split("ERROR")[1].strip(
+                    " -") if "ERROR" in err else err
                 notification_parts.append(err_part)
 
         if variant_errors:
             notification_parts.append(":x: **Variant Errors:**")
             for err in variant_errors:
-                err_part = err.split("ERROR")[1].strip(" -") if "ERROR" in err else err
+                err_part = err.split("ERROR")[1].strip(
+                    " -") if "ERROR" in err else err
                 notification_parts.append(err_part)
 
         if other_errors:
             notification_parts.append(":exclamation: **Other Errors:**")
             for err in other_errors:
-                err_part = err.split("ERROR")[1].strip(" -") if "ERROR" in err else err
+                err_part = err.split("ERROR")[1].strip(
+                    " -") if "ERROR" in err else err
                 notification_parts.append(err_part)
 
         notification = "\n".join(notification_parts)
@@ -151,7 +163,8 @@ def send_outcome_notification():
         slack_client.post_message(message=notification, channel="alerts")
     else:
         slack_client = SlackClient()
-        slack_client.post_message(message="Ici-report-export script ran successfully.", channel="log")
+        slack_client.post_message(
+            message="Ici-report-export script ran successfully.", channel="log")
         print("No errors to notify.")
 
 
@@ -180,7 +193,8 @@ def parse_args():
     args = parser.parse_args()
 
     # Validate inputs
-    created_before_dt_obj = validate_date(args.created_before, "created_before")
+    created_before_dt_obj = validate_date(
+        args.created_before, "created_before")
     created_after_dt_obj = validate_date(args.created_after, "created_after")
     epoch_seconds_before = int(created_before_dt_obj.timestamp())
     epoch_seconds_after = int(created_after_dt_obj.timestamp())
@@ -203,6 +217,7 @@ def validate_date(date_str, param_name):
     except ValueError:
         logger.error(f"Invalid date format for {param_name}: {date_str}")
         raise ValueError
+
 
 def log_start_time(start_time_file, args):
     """
@@ -233,7 +248,7 @@ def log_start_time(start_time_file, args):
             logger.info(
                 "Arguments provided."
                 "Therefore no need to write the current start time to the file."
-                )
+            )
             return None, current_start_time
         logger.info("Writing the current start time to the file.")
         with open(start_time_file, 'w') as file:
@@ -243,7 +258,8 @@ def log_start_time(start_time_file, args):
 
     # Validate the previous start time
     try:
-        previous_start_time = dt.datetime.strptime(previous_start_time, "%Y-%m-%dT%H:%M:%SZ")
+        previous_start_time = dt.datetime.strptime(
+            previous_start_time, "%Y-%m-%dT%H:%M:%SZ")
     except ValueError:
         logger.warning(
             "Invalid previous start time format in the log file.")
@@ -345,12 +361,14 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
             logger.debug(f"Audit logs response: {response.json()}")
             return response.json().get("content", [])
         else:
-            logger.error(f"Runtime Error fetching audit logs: {response.status_code}")
+            logger.error(
+                f"Runtime Error fetching audit logs: {response.status_code}")
             raise RequestException(
                 f"Error fetching audit logs. Status code: {response.status_code}"
             )
     except RequestException as e:
-        logger.error(f"Runtime Error, request exception while fetching audit logs: {e}")
+        logger.error(
+            f"Runtime Error, request exception while fetching audit logs: {e}")
         raise RequestException(
             f"Error fetching audit logs. {e}"
         ) from e
@@ -449,7 +467,8 @@ def process_reports_and_generate_excel(audit_logs,
             if report_json:
                 matched_reports.append(report_json)
         else:
-            logger.error(f"Case Error ({case_id}): No match for case ID. ICI id = {ici_id}")
+            logger.error(
+                f"Case Error ({case_id}): No match for case ID. ICI id = {ici_id}")
             logger.info(f"Report text: {report_text}")
             logger.info(f"Pattern: {report_pattern}")
 
@@ -502,8 +521,8 @@ def select_association_consequences(associations):
     # consequences from association
     associations_list = [
         assoc.get("associationInfo", {}
-        ).get("biomarkers", []) for assoc in associations
-        ]
+                  ).get("biomarkers", []) for assoc in associations
+    ]
 
     biomarkers_list = reduce(lambda x, y: x + y, associations_list, [])
 
@@ -549,13 +568,16 @@ def extract_variant_data(report_json):
     if subject:
         reports_json = subject[0]
     else:
-        logger.error(f"Case Error ({case_id}): No subjects found in the report. Truncated JSON.")
+        logger.error(
+            f"Case Error ({case_id}): No subjects found in the report. Truncated JSON.")
 
     reports = reports_json.get("reports")
     # Select only report
     if len(reports) > 1:
-        logger.error(f"Case Error ({case_id}): Invalid number of reports found. Reports = {len(reports)}")
-        raise RuntimeError(f"Invalid number of reports found. Reports = {len(reports)}")
+        logger.error(
+            f"Case Error ({case_id}): Invalid number of reports found. Reports = {len(reports)}")
+        raise RuntimeError(
+            f"Invalid number of reports found. Reports = {len(reports)}")
     else:
         report = reports[0]
     # Extract CNV information
@@ -575,7 +597,7 @@ def extract_variant_data(report_json):
             logger.error(
                 f"Case Error ({case_id}): Variant type not found for variant."
                 f"Variant JSON: {variant}"
-                )
+            )
 
             continue
         elif variant_type == "SNV":
@@ -591,17 +613,18 @@ def extract_variant_data(report_json):
                 if vaf is None:
                     logger.error(
                         f"Case Error ({case_id}): VAF not present for variant"
-                        )
+                    )
                     logger.info(f"Variant JSON: {variant}")
                 elif isinstance(vaf, str):
                     vaf = float(vaf)
                 vaf = round(vaf, 2)
             except (TypeError, ValueError) as e:
-                logger.error(f"Case Error ({case_id}): VAF calculation issue (SNV).  See Error: {e}")
+                logger.error(
+                    f"Case Error ({case_id}): VAF calculation issue (SNV).  See Error: {e}")
             associations = variant.get("associations", [])
             oncogenicity_list = [
                 assoc.get("actionabilityName", "N/A") for assoc in associations
-                ]
+            ]
             oncogenicity_list = set(oncogenicity_list)
             oncogenicity = ", ".join(oncogenicity_list)
 
@@ -623,7 +646,7 @@ def extract_variant_data(report_json):
             if fold_change is None:
                 logger.error(
                     f"Case Error ({case_id}): Fold change not present for variant"
-                    )
+                )
 
             gene = variant.get("gene", "N/A")
 
@@ -635,7 +658,7 @@ def extract_variant_data(report_json):
 
             oncogenicity_list = [
                 assoc.get("actionabilityName", "N/A") for assoc in associations
-                ]
+            ]
             oncogenicity_list = set(oncogenicity_list)
             oncogenicity = ", ".join(oncogenicity_list)
             variant_info = {
@@ -659,13 +682,14 @@ def extract_variant_data(report_json):
                 if vaf is None:
                     logger.error(
                         f"Case Error ({case_id}): VAF not present for variant"
-                        )
+                    )
                     logger.info(f"Variant JSON: {variant}")
                 elif isinstance(vaf, str):
                     vaf = float(vaf)
                 vaf = round(vaf, 2)
             except TypeError as e:
-                logger.error(f"Case Error {case_id}: VAF calculation issue. See Error, {e}")
+                logger.error(
+                    f"Case Error {case_id}: VAF calculation issue. See Error, {e}")
 
             associations = variant.get("associations", [])
             # Get consequences from associations
@@ -673,7 +697,7 @@ def extract_variant_data(report_json):
             # Get oncogenicity from associations
             oncogenicity_list = [
                 assoc.get("actionabilityName", "N/A") for assoc in associations
-                ]
+            ]
             oncogenicity_list = set(oncogenicity_list)
             oncogenicity = ", ".join(oncogenicity_list)
 
@@ -688,7 +712,8 @@ def extract_variant_data(report_json):
             }
             indels_variants_info.append(variant_info)
         else:
-            logger.error(f"Case Error ({case_id}): Unknown variant type: {variant_type}")
+            logger.error(
+                f"Case Error ({case_id}): Unknown variant type: {variant_type}")
             logger.info(f"Variant JSON: {variant}")
 
     return snvs_variants_info, cnvs_variants_info, indels_variants_info
@@ -790,7 +815,7 @@ def extract_data_from_report_json(report_json):
     # Extract variant and metric data
     snvs_variants_info, cnvs_variants_info, indels_variants_info = extract_variant_data(
         report_json
-        )
+    )
     # extract MSI and TMB metrics
     tmb_msi_metric_info = extract_TMB_MSI_data(report_json)
 
@@ -893,23 +918,28 @@ def write_section(writer, df, header, start_col=0, start_row=0):
                 # If this is the “Estimated copy number” column,
                 # populate it with the “Fold Change” value for this row
                 if col_name == "Estimated copy number" and "Fold Change" in df.columns:
-                    fold_change_val = df.iloc[r][df.columns.get_loc("Fold Change")]
+                    fold_change_val = df.iloc[r][df.columns.get_loc(
+                        "Fold Change")]
                     if fold_change_val is None or fold_change_val == "N/A":
                         formula = "N/A"
                     formula = f'=ROUND(((({fold_change_val}*200)-2*(100-$N$3))/$N$3), 2)'
-                    worksheet.write(start_row + r, start_col + c, formula, arial_format)
+                    worksheet.write(start_row + r, start_col +
+                                    c, formula, arial_format)
                 elif col_name == "Fold Change":
                     fold_change_val = df.iloc[r, c]
                     formula = f'=ROUND(({fold_change_val}), 2)'
-                    worksheet.write(start_row + r, start_col + c, formula, arial_format)
+                    worksheet.write(start_row + r, start_col +
+                                    c, formula, arial_format)
                 elif col_name == "TMB (mut/MB)":
                     value = df.iloc[r, c]
                     formula = f'=ROUND(({value}), 2)'
-                    worksheet.write(start_row + r, start_col + c, formula, arial_format)
+                    worksheet.write(start_row + r, start_col +
+                                    c, formula, arial_format)
                 else:
                     # Normal cell write
                     value = df.iloc[r, c]
-                    worksheet.write(start_row + r, start_col + c, value, arial_format)
+                    worksheet.write(start_row + r, start_col +
+                                    c, value, arial_format)
 
         start_row += len(df) + 2
 
@@ -981,10 +1011,11 @@ def json_extract_to_excel(sample_id, case_info,
         " ",  # Gap column
         "Fold Change",
     ]
-    cnvs_variants_info_df = cnvs_variants_info_df.reindex(columns=desired_columns, fill_value="")
+    cnvs_variants_info_df = cnvs_variants_info_df.reindex(
+        columns=desired_columns, fill_value="")
     # Assign a placeholder formula to the 'Estimated copy number' column
     cnvs_variants_info_df["Estimated copy number"] = "=SOME_EXCEL_FORMULA()"
-    case_info_df["%TCC"] = "" # Add an empty column for %TCC
+    case_info_df["%TCC"] = ""  # Add an empty column for %TCC
     case_info_df["Sample_Id"] = sample_id
 
     # Add an empty 'Tier' column to variant tables
@@ -1003,11 +1034,15 @@ def json_extract_to_excel(sample_id, case_info,
         worksheet.set_column(1, 1, 20)  # Column B
         worksheet.set_column(2, 2, 20)  # Column C
         row_pos = 0
-        row_pos = write_section(writer, small_variants_df, "Small Variants", start_col=0, start_row=row_pos)
-        row_pos = write_section(writer, cnvs_variants_info_df, "CNVs", start_col=0, start_row=row_pos)
-        row_pos = write_section(writer, tmb_msi_metric_info_df, "TMB/MSI Metrics", start_col=0, start_row=row_pos)
-        row_pos = 0 # Overwrite start position for next section
-        row_pos = write_section(writer, case_info_df, "Case Information", start_col=10, start_row=row_pos)
+        row_pos = write_section(writer, small_variants_df,
+                                "Small Variants", start_col=0, start_row=row_pos)
+        row_pos = write_section(
+            writer, cnvs_variants_info_df, "CNVs", start_col=0, start_row=row_pos)
+        row_pos = write_section(writer, tmb_msi_metric_info_df,
+                                "TMB/MSI Metrics", start_col=0, start_row=row_pos)
+        row_pos = 0  # Overwrite start position for next section
+        row_pos = write_section(
+            writer, case_info_df, "Case Information", start_col=10, start_row=row_pos)
 
 
 def validate_env_vars():
@@ -1024,7 +1059,8 @@ def validate_env_vars():
     ]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     if missing_vars:
-        logger.error(f"Runtime Error: Missing required environment variables: {', '.join(missing_vars)}")
+        logger.error(
+            f"Runtime Error: Missing required environment variables: {', '.join(missing_vars)}")
         raise RuntimeError("Missing environment variables. See logs.")
 
 
@@ -1050,7 +1086,8 @@ def check_failed_audit_logs(matched_reports, search_directory='/home/rswilson1/D
     matched_reports = list(unique_by_display_id.values())
     matched_reports_count = len(matched_reports)
 
-    report_names = [report.get("displayId", "N/A") for report in matched_reports]
+    report_names = [report.get("displayId", "N/A")
+                    for report in matched_reports]
     # Find all the reports that were not generated
     # Search for excels generated today
     today = dt.datetime.now().date()
@@ -1063,14 +1100,18 @@ def check_failed_audit_logs(matched_reports, search_directory='/home/rswilson1/D
                 excel_files_generated_today.append(file_name)
     # Check if length of reports to be generared matched generated.
     if matched_reports_count != len(excel_files_generated_today):
-        logger.error(f"Runtime Error: Reports to be generated: {matched_reports_count}")
-        logger.error(f"Runtime Error: Excel files generated today: {excel_files_generated_today}")
+        logger.error(
+            f"Runtime Error: Reports to be generated: {matched_reports_count}")
+        logger.error(
+            f"Runtime Error: Excel files generated today: {excel_files_generated_today}")
         logger.error("Runtime Error: Incorrect number of reports present.")
     else:
         logger.info("Correct number of reports generated.")
-        logger.info(f"Excel files generated today: {excel_files_generated_today}")
+        logger.info(
+            f"Excel files generated today: {excel_files_generated_today}")
         slack_client = SlackClient()
-        slack_client.post_message(message="Correct number of reports generated.", channel="log")
+        slack_client.post_message(
+            message="Correct number of reports generated.", channel="log")
 
     return matched_reports_count, report_names
 
@@ -1130,7 +1171,7 @@ def main():
         logger.info("Audit logs fetched successfully.")
         matched_reports = process_reports_and_generate_excel(
             audit_logs, base_url, headers, report_pattern
-            )
+        )
         num_reports, report_names = check_failed_audit_logs(matched_reports)
         print(f"Number of reports generated: {num_reports}")
         # print report names individually
