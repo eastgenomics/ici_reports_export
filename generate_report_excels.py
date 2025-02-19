@@ -194,14 +194,36 @@ def parse_args():
 
     # Validate inputs
     created_before_dt_obj = validate_date(
-        args.created_before, "created_before")
-    created_after_dt_obj = validate_date(args.created_after, "created_after")
-    epoch_seconds_before = int(created_before_dt_obj.timestamp())
-    epoch_seconds_after = int(created_after_dt_obj.timestamp())
-    if epoch_seconds_before < epoch_seconds_after:
-        logger.error("Invalid date range: created_before < created_after")
-        raise ValueError("Invalid date range: created_before < created_after")
-    return args
+        args.created_before, "created_before"
+        )
+    created_after_dt_obj = validate_date(
+        args.created_after, "created_after"
+        )
+
+
+    if created_after_dt_obj is not None and created_before_dt_obj is not None:
+        epoch_seconds_before = int(created_before_dt_obj.timestamp())
+        epoch_seconds_after = int(created_after_dt_obj.timestamp())
+        if epoch_seconds_before < epoch_seconds_after:
+            logger.error("Invalid date range: created_before < created_after")
+            raise ValueError("Invalid date range: created_before < created_after")
+        logger.info(
+            "Date range: created_after = %s, created_before = %s",
+            created_after_dt_obj, created_before_dt_obj
+        )
+        return args
+    if created_after_dt_obj is not None or created_before_dt_obj is not None:
+        logger.info(
+            "Single date provided. Fetching reports for that date range."
+        )
+        return args
+    elif created_after_dt_obj is None and created_before_dt_obj is None:
+        logger.info("No date range provided.")
+        return args
+    else:
+        logger.error("Invalid date range: created_after or created_before is None")
+        raise RuntimeError("Invalid date range: created_after or created_before is None")
+
 
 
 def validate_date(date_str, param_name):
@@ -209,14 +231,13 @@ def validate_date(date_str, param_name):
     if date_str is None:
         return
     try:
-        if date_str == "":
-            logger.error(f"Invalid date format for {param_name}")
-            raise ValueError
         sanatized_dt_obj = dt.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
         return sanatized_dt_obj
-    except ValueError:
-        logger.error(f"Invalid date format for {param_name}: {date_str}")
-        raise ValueError
+    except ValueError as e:
+        logger.error(f"Invalid date format for {param_name}: {date_str}. See Error: {e}")
+        raise ValueError(
+            f"Invalid date format for {param_name}: {date_str}. See Error: {e}"
+        ) from e
 
 
 def log_start_time(start_time_file, args):
@@ -582,7 +603,7 @@ def extract_variant_data(report_json):
         report = reports[0]
     # Extract CNV information
     variants = report.get("reportDetails", {}).get("variants", [])
-    logger.info(f"Variants length = {len(variants)}")
+    logger.info(f"No. Variants = {len(variants)}")
     # Extract CNV information
     snvs_variants_info = []
     cnvs_variants_info = []
@@ -820,19 +841,19 @@ def extract_data_from_report_json(report_json):
     tmb_msi_metric_info = extract_TMB_MSI_data(report_json)
 
     # Print extracted information
-    logger.debug("Case Information:")
+    logger.info("Case Information:")
     for key, value in case_info.items():
-        logger.debug(f"{key}: {value}")
+        logger.info(f"{key}: {value}")
 
-    logger.debug("\nVariant Information:")
+    logger.info("\nVariant Information:")
     for variant in snvs_variants_info:
-        logger.debug(variant)
+        logger.info (variant)
     for variant in cnvs_variants_info:
-        logger.debug(variant)
+        logger.info(variant)
     for variant in indels_variants_info:
-        logger.debug(variant)
+        logger.info(variant)
     for variant in tmb_msi_metric_info:
-        logger.debug(variant)
+        logger.info(variant)
 
     return sample_id, case_info, snvs_variants_info, \
         cnvs_variants_info, indels_variants_info, tmb_msi_metric_info
@@ -1144,11 +1165,14 @@ def main():
     )
 
     # Check if the user has provided a start time
-
     if args.created_before:
         created_before = args.created_before
+    else:
+        created_before = None
     if args.created_after:
         created_after = args.created_after
+    else:
+        created_after = None
     if not args.created_before and not args.created_after:
         # No set created_before and no set created_after times
         # Use the previous start time and current start time
