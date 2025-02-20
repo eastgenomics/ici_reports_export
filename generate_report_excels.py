@@ -1027,22 +1027,22 @@ def json_extract_to_excel(sample_id, case_info,
         "Gene",
         "Consequence",
         "Transcript",
-        "Estimated copy number",  # Will hold a formula
+        "Estimated copy number",
         "Tier",
         " ",  # Gap column
         "Fold Change",
     ]
     cnvs_variants_info_df = cnvs_variants_info_df.reindex(
         columns=desired_columns, fill_value="")
-    # Assign a placeholder formula to the 'Estimated copy number' column
-    cnvs_variants_info_df["Estimated copy number"] = "=SOME_EXCEL_FORMULA()"
-    case_info_df["%TCC"] = ""  # Add an empty column for %TCC
+    # Add an empty column for %TCC
+    case_info_df["%TCC"] = ""
     case_info_df["Sample_Id"] = sample_id
 
     # Add an empty 'Tier' column to variant tables
     small_variants_df['Tier'] = ''
     cnvs_variants_info_df['Tier'] = ''
     tmb_msi_metric_info_df = pd.DataFrame([tmb_msi_metric_info])
+
     # Write the extracted information to an Excel file
     with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx", engine='xlsxwriter') as writer:
         single_sheet_name = "Reported_Variants_and_Metrics"
