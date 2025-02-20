@@ -5,29 +5,25 @@ from requests.packages.urllib3.util.retry import Retry
 import json
 from dotenv import load_dotenv
 
+
 class SlackClient:
     def __init__(self):
         required_vars = {
-         "SLACK_TOKEN": "slack_token",
-         "SLACK_LOG_CHANNEL": "slack_log_channel",
-         "SLACK_ALERT_CHANNEL": "slack_alert_channel"
+            "SLACK_LOG_WEBHOOK": "slack_log_webhook",
+            "SLACK_ALERTS_WEBHOOK": "slack_alerts_webhook",
         }
         missing_vars = [
             env_var for env_var, attr in required_vars.items()
             if not os.getenv(env_var)
         ]
         if missing_vars:
-            raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+            raise ValueError(
+                f"Missing required environment variables: {', '.join(missing_vars)}")
         load_dotenv()  # Load environment variables
         self.webhooks = {
             "log": os.getenv("SLACK_LOG_WEBHOOK"),
             "alerts": os.getenv("SLACK_ALERTS_WEBHOOK")
         }
-
-        # Ensure webhooks exist
-        if not self.webhooks["log"] or not self.webhooks["alerts"]:
-            raise ValueError("One or both Slack webhook URLs are missing in the environment")
-
 
     def post_message(self, message, channel) -> None:
         """
@@ -63,11 +59,13 @@ class SlackClient:
         except requests.exceptions.ConnectionError:
             raise Exception("Connection error occurred")
         except requests.exceptions.HTTPError as e:
-            raise Exception(f"HTTP error occurred: {e.response.status_code} - {e.response.text}")
+            raise Exception(
+                f"HTTP error occurred: {e.response.status_code} - {e.response.text}")
         except requests.exceptions.RequestException as e:
             raise Exception(f"Request failed: {e}")
 
         if response.status_code != 200:
-            raise Exception(f"Request failed with status {response.status_code}, {response.text}")
+            raise Exception(
+                f"Request failed with status {response.status_code}, {response.text}")
         else:
             print(f"Message posted to {channel} channel")

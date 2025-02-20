@@ -1,6 +1,6 @@
 """
 This script fetches audit logs from the ICI API, filters the logs based on
-specific event types (to get case IDs for recent reports ina  time-period),
+specific event types (to get case IDs for recent reports in a time-period),
 and extracts reports JSONS. The script then processes the reports
 to extract relevant information and generates
 an Excel file with the extracted data.
@@ -50,7 +50,8 @@ def setup_logging(stream_level=logging.INFO, error_file='errors.log'):
 
     Returns
     -------
-    logger: logging.Logger
+    tuple
+        A tuple containing the logger and the error collector.
     """
     global logger
     global error_collector
@@ -195,18 +196,18 @@ def parse_args():
     # Validate inputs
     created_before_dt_obj = validate_date(
         args.created_before, "created_before"
-        )
+    )
     created_after_dt_obj = validate_date(
         args.created_after, "created_after"
-        )
-
+    )
 
     if created_after_dt_obj is not None and created_before_dt_obj is not None:
         epoch_seconds_before = int(created_before_dt_obj.timestamp())
         epoch_seconds_after = int(created_after_dt_obj.timestamp())
         if epoch_seconds_before < epoch_seconds_after:
             logger.error("Invalid date range: created_before < created_after")
-            raise ValueError("Invalid date range: created_before < created_after")
+            raise ValueError(
+                "Invalid date range: created_before < created_after")
         logger.info(
             "Date range: created_after = %s, created_before = %s",
             created_after_dt_obj, created_before_dt_obj
@@ -221,9 +222,10 @@ def parse_args():
         logger.info("No date range provided.")
         return args
     else:
-        logger.error("Invalid date range: created_after or created_before is None")
-        raise RuntimeError("Invalid date range: created_after or created_before is None")
-
+        logger.error(
+            "Invalid date range: created_after or created_before is None")
+        raise RuntimeError(
+            "Invalid date range: created_after or created_before is None")
 
 
 def validate_date(date_str, param_name):
@@ -231,10 +233,11 @@ def validate_date(date_str, param_name):
     if date_str is None:
         return
     try:
-        sanatized_dt_obj = dt.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
-        return sanatized_dt_obj
+        sanitized_dt_obj = dt.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
+        return sanitized_dt_obj
     except ValueError as e:
-        logger.error(f"Invalid date format for {param_name}: {date_str}. See Error: {e}")
+        logger.error(
+            f"Invalid date format for {param_name}: {date_str}. See Error: {e}")
         raise ValueError(
             f"Invalid date format for {param_name}: {date_str}. See Error: {e}"
         ) from e
@@ -501,9 +504,14 @@ def process_reports_and_generate_excel(audit_logs,
         unique_by_id = {}
         for rpt in matched_reports:
             rid = rpt.get("id")
-            if rid not in unique_by_id or rpt.get("updatedDate", "") > unique_by_id[rid].get("updatedDate", ""):
+            updated_date = rpt.get("updatedDate", "")
+            existing_report = unique_by_id.get(rid, {})
+            existing_updated_date = existing_report.get("updatedDate", "")
+            
+            # Check if the report ID is not in the dictionary or if the current report is more recent
+            if rid not in unique_by_id or updated_date > existing_updated_date:
                 # Additional check for matching displayId
-                if rid in unique_by_id and unique_by_id[rid].get("displayId") != rpt.get("displayId"):
+                if rid in unique_by_id and existing_report.get("displayId") != rpt.get("displayId"):
                     logger.warning("Mismatch in displayId for the same ID")
                 unique_by_id[rid] = rpt
 
@@ -847,7 +855,7 @@ def extract_data_from_report_json(report_json):
 
     logger.info("\nVariant Information:")
     for variant in snvs_variants_info:
-        logger.info (variant)
+        logger.info(variant)
     for variant in cnvs_variants_info:
         logger.info(variant)
     for variant in indels_variants_info:
@@ -937,13 +945,15 @@ def write_section(writer, df, header, start_col=0, start_row=0):
                 # with hard-coded value.
 
                 # If this is the “Estimated copy number” column,
-                # populate it with the “Fold Change” value for this row
+                # and the “Fold Change” column is present,
+                # calculate the “Fold Change” column based on the formula.
                 if col_name == "Estimated copy number" and "Fold Change" in df.columns:
                     fold_change_val = df.iloc[r][df.columns.get_loc(
                         "Fold Change")]
                     if fold_change_val is None or fold_change_val == "N/A":
                         formula = "N/A"
-                    formula = f'=ROUND(((({fold_change_val}*200)-2*(100-$N$3))/$N$3), 2)'
+                    else:
+                        formula = f'=ROUND(((({fold_change_val}*200)-2*(100-$N$3))/$N$3), 2)'
                     worksheet.write(start_row + r, start_col +
                                     c, formula, arial_format)
                 elif col_name == "Fold Change":
@@ -1165,19 +1175,30 @@ def main():
     )
 
     # Check if the user has provided a start time
-    if args.created_before:
-        created_before = args.created_before
-    else:
-        created_before = None
-    if args.created_after:
-        created_after = args.created_after
-    else:
-        created_after = None
     if not args.created_before and not args.created_after:
         # No set created_before and no set created_after times
         # Use the previous start time and current start time
         created_before = current_start_time
         created_after = previous_start_time
+    elif args.created_before and args.created_after:
+        # Both created_before and created_after are set
+        # Use the provided times
+        created_before = args.created_before
+        created_after = args.created_after
+    elif args.created_before and not args.created_after:
+        # Only created_before is set
+        # Use the provided created_before time and set created_after to None
+        created_before = args.created_before
+        created_after = None
+    elif not args.created_before and args.created_after:
+        # Only created_after is set
+        # Use the provided created_after time and set created_before to None
+        created_before = None
+        created_after = args.created_after
+    else:
+        logger.error(
+            "Runtime Error: Invalid combination of created_before and created_after arguments."
+            )
 
     # Setup API headers
     headers = setup_api_headers(api_key, x_illumina_workgroup)
