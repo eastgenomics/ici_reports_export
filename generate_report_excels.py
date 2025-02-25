@@ -507,7 +507,7 @@ def process_reports_and_generate_excel(audit_logs,
             updated_date = rpt.get("updatedDate", "")
             existing_report = unique_by_id.get(rid, {})
             existing_updated_date = existing_report.get("updatedDate", "")
-            
+
             # Check if the report ID is not in the dictionary or if the current report is more recent
             if rid not in unique_by_id or updated_date > existing_updated_date:
                 # Additional check for matching displayId
@@ -625,8 +625,8 @@ def extract_variant_data(report_json):
         if variant_type is None:
             logger.error(
                 f"Case Error ({case_id}): Variant type not found for variant."
-                f"Variant JSON: {variant}"
             )
+            logger.debug(f"Variant JSON: {variant}")
 
             continue
         elif variant_type == "SNV":
@@ -643,7 +643,7 @@ def extract_variant_data(report_json):
                     logger.error(
                         f"Case Error ({case_id}): VAF not present for variant"
                     )
-                    logger.info(f"Variant JSON: {variant}")
+                    logger.debug(f"Variant JSON: {variant}")
                 elif isinstance(vaf, str):
                     vaf = float(vaf)
                 vaf = round(vaf, 2)
@@ -712,7 +712,7 @@ def extract_variant_data(report_json):
                     logger.error(
                         f"Case Error ({case_id}): VAF not present for variant"
                     )
-                    logger.info(f"Variant JSON: {variant}")
+                    logger.debug(f"Variant JSON: {variant}")
                 elif isinstance(vaf, str):
                     vaf = float(vaf)
                 vaf = round(vaf, 2)
@@ -743,7 +743,7 @@ def extract_variant_data(report_json):
         else:
             logger.error(
                 f"Case Error ({case_id}): Unknown variant type: {variant_type}")
-            logger.info(f"Variant JSON: {variant}")
+            logger.debug(f"Variant JSON: {variant}")
 
     return snvs_variants_info, cnvs_variants_info, indels_variants_info
 
