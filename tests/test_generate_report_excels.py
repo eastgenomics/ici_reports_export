@@ -14,7 +14,7 @@ import re
 import requests
 from requests.exceptions import RequestException, HTTPError, ConnectionError, Timeout
 import argparse
-from dotevn import load_dotenv
+from dotenv import load_dotenv
 
 # Add the parent directory to the path to import the module
 sys.path.insert(0, os.path.abspath(
