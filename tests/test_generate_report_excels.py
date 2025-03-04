@@ -7,7 +7,6 @@ from io import StringIO
 from contextlib import contextmanager
 import time
 
-
 from unittest.mock import patch, Mock, mock_open, MagicMock
 import unittest
 from pytest import raises, mark, fixture
@@ -15,7 +14,7 @@ import re
 import requests
 from requests.exceptions import RequestException, HTTPError, ConnectionError, Timeout
 import argparse
-
+from dotevn import load_dotenv
 
 # Add the parent directory to the path to import the module
 sys.path.insert(0, os.path.abspath(
@@ -28,7 +27,7 @@ from utils.notify_slack import SlackClient
 Tests for the generate_report_excels.py file
 """
 logger, error_collector = setup_logging()
-
+load_dotenv()
 
 @fixture
 def mock_args():
@@ -143,14 +142,6 @@ class TestParseArguments():
             with raises(ValueError):
                 _args = parse_args()
 
-    # def test_created_before_and_created_after_cannot_be_equal(self, mock_args):
-    #     with patch('argparse.ArgumentParser.parse_args') as mock_parse_args:
-    #         mock_parse_args.return_value = argparse.Namespace(
-    #             created_before="2024-01-01T08:30:00Z",
-    #             created_after="2024-01-01T08:30:00Z",
-    #         )
-    #         with raises(RuntimeError):
-    #             _args = validate_date()
 
 
 @fixture
@@ -352,6 +343,7 @@ class TestSendOutcomeNotification(unittest.TestCase):
     @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
     def test_no_errors(self, mock_get_collected_errors, mock_slack_post_message):
+
         mock_get_collected_errors.return_value = []
         with self.capture_stdout() as stdout:
             send_outcome_notification()
@@ -363,6 +355,7 @@ class TestSendOutcomeNotification(unittest.TestCase):
     @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
     def test_runtime_errors(self, mock_get_collected_errors, mock_slack_post_message):
+
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Runtime Error: Some reports were not generated."
         ]
