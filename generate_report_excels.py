@@ -17,7 +17,7 @@ import requests
 import argparse
 import dotenv
 import pandas as pd
-import shutil
+import subprocess
 
 # Setup logging
 logging.basicConfig(
@@ -52,6 +52,8 @@ def parse_args():
                         'e.g: 2024-01-01T08:30:00Z to filter reports created after this date. Only allowed in manual mode.')
     parser.add_argument('--mv-reports', type=bool, default=False,
                         help='Move reports to the ClinGen folder in the ICI API.')
+    parser.add_argument('--testing', type=bool, default=False,
+                        help='Run the script in testing mode.')
     args = parser.parse_args()
     # Validate inputs
     if args.created_before == "" or args.created_after == "":
@@ -699,30 +701,40 @@ def json_extract_to_excel(sample_id, case_info,
         write_section(tmb_msi_metric_info_df, "TMB_MSI")
         write_section(case_info_df, "Analyst Information")
 
-def move_reports_to_clingen(destination_dir):
+def move_reports_to_clingen(source_dir, destination_dir, dry_run=False):
     """
-    Move reports to the ClinGen folder in the ICI API.
+    Move reports to the ClinGen folder using the mv_reports.sh script.
 
     Parameters
     ----------
-    destination_dir: str
+    source_dir : str
+        The source directory where the reports are located.
+    destination_dir : str
         The destination directory to move the reports.
+    dry_run : bool
+        If True, perform a dry run without moving files.
 
     Returns
     -------
     None
     """
-    # Move excel files in directory to ClinGen folder
-    destination_dir = "/old_reports"
+    # Ensure destination directory exists
     os.makedirs(destination_dir, exist_ok=True)
 
-    for f in os.listdir("."):
-        if f.endswith(".xlsx"):
-            dest_path = os.path.join(destination_dir, f)
-            if os.path.exists(dest_path):
-                logging.warning(f"File already exists in the new directory: {dest_path}")
-            else:
-                shutil.move(f, dest_path)
+    # Prepare dry run flag for the shell script ("true" for testing, "false" otherwise)
+    dry_run_flag = "true" if dry_run else "false"
+
+    # Execute the shell script with SOURCE_DIR, DEST_DIR, and DRY_RUN flag
+    try:
+        result = subprocess.run(
+            ["./mv_reports.sh", source_dir, destination_dir, dry_run_flag],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        logging.info("Reports moved successfully: %s", result.stdout.decode())
+    except subprocess.CalledProcessError as e:
+        logging.error("Failed to move reports using mv_reports.sh: %s", e.stderr.decode())
 
 def main():
     """
@@ -775,9 +787,16 @@ def main():
             audit_logs, base_url, headers, report_pattern)
     else:
         logging.warning("No relevant audit logs found.")
-    if args.mv_reports:
+    if args.mv_reports and args.testing:
+        # source is current working directory
+        source_dir = os.getcwd()
         destination_dir = os.getenv("DESTINATION_DIR")
-        move_reports_to_clingen(destination_dir)
+        move_reports_to_clingen(source_dir, destination_dir, dry_run=True)
+    elif args.mv_reports and not args.testing:
+        # source is current working directory
+        source_dir = os.getcwd()
+        destination_dir = os.getenv("DESTINATION_DIR")
+        move_reports_to_clingen(source_dir, destination_dir, dry_run=False)
 
     logging.info("Script execution completed.")
 
