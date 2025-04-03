@@ -11,7 +11,7 @@ This Python script is designed to export reports by fetching data from the ICI A
     - [Arguments](#arguments)
     - [Example Commands](#example-commands)
   - [🧪 Testing](#-testing)
-  - [📜 License](#-license)
+  - [📜 Licence](#-licence)
 
 ## 🚀 Features
 - Argument parsing for specifying date ranges and report patterns.
@@ -21,6 +21,9 @@ This Python script is designed to export reports by fetching data from the ICI A
 - Generating report excels.
 
 ## 🔧 Installation
+Requirements:
+- Python 3.10 or higher
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/eastgenomics/ici_reports_export.git
@@ -62,5 +65,5 @@ The script can be run in different modes based on the provided arguments. Below 
    pytest tests/test_generate_report_excels.py
    ```
 
-## 📜 License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+## 📜 Licence
+This project is licenced under the MIT Licence. See the [LICENCE](LICENCE) file for details.

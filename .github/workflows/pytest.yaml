@@ -28,6 +28,11 @@ jobs:
       run: |
         touch tests/test_data/script_start_time.log
 
+    - name: Create fake .env file
+      run: |
+        echo "SLACK_LOG_WEBHOOK=https://test-string" > .env
+        echo "SLACK_ALERTS_WEBHOOK=https://test-string" >> .env
+
     - name: Run Pytest
       run: |
         pytest -vv --cov --random-order
