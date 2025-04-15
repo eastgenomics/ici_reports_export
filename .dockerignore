@@ -1,3 +1,7 @@
 old_reports/
 htmlcov/
 appdata/
+*.log
+*.tar.gz
+*.zip
+*.tar
