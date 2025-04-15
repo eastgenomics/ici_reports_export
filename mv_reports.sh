@@ -3,7 +3,7 @@
 SOURCE_DIR="$1"
 DEST_DIR="$2"
 DRY_RUN="$3"
-LOG_FILE="move_log.txt"
+LOG_FILE="$4"
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
     echo "Usage: $0 <source_directory> <destination_directory> [--dry-run]"
@@ -20,12 +20,20 @@ for file in "$SOURCE_DIR"/*.xlsx; do
     if [ -e "$file" ]; then
         basefile=$(basename "$file")
         if [ -e "$DEST_DIR/$basefile" ]; then
-            echo "$(date): $basefile already exists in $DEST_DIR. Not moved." >> "$LOG_FILE"
+            if [ "$DRY_RUN" = "--dry-run" ]; then
+                echo "$(date): DRYRUN: $basefile already exists in $DEST_DIR. Not moved."
+                echo "$(date): DRYRUN: $basefile already exists in $DEST_DIR. Not moved." >> "$LOG_FILE"
+            else
+                echo "$(date): $basefile already exists in $DEST_DIR. Not moved."
+                echo "$(date): $basefile already exists in $DEST_DIR. Not moved." >> "$LOG_FILE"
+            fi
         else
             if [ "$DRY_RUN" = "--dry-run" ]; then
-                echo "$(date): Would move $basefile to $DEST_DIR." >> "$LOG_FILE"
+                echo "$(date): DRYRUN: Would move $basefile to $DEST_DIR."
+                echo "$(date): DRYRUN: Would move $basefile to $DEST_DIR." >> "$LOG_FILE"
             else
                 mv "$file" "$DEST_DIR"/
+                echo "$(date): Moved $basefile to $DEST_DIR."
                 echo "$(date): Moved $basefile to $DEST_DIR." >> "$LOG_FILE"
             fi
         fi
