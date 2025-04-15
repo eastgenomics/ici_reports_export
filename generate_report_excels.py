@@ -192,10 +192,13 @@ def parse_args():
     parser.add_argument('--created_after', type=str, default=None,
                         help='The date string in the format YYYY-MM-DD\'T\'HH:MM:SS\'Z\''
                         'e.g: 2024-01-01T08:30:00Z to filter reports created after this date.')
-                        'e.g: 2024-01-01T08:30:00Z to filter reports created after this date. Only allowed in manual mode.')
-    parser.add_argument('--mv-reports', type=bool, default=False,
+    parser.add_argument('--mv_reports',
+                        default=False,
+                        action='store_true',
                         help='Move reports to the ClinGen folder in the ICI API.')
-    parser.add_argument('--testing', type=bool, default=False,
+    parser.add_argument('--testing',
+                        action='store_true',
+                        default=False,
                         help='Run the script in testing mode.')
     args = parser.parse_args()
 
@@ -1174,12 +1177,15 @@ def move_reports_to_clingen(source_dir, destination_dir, dry_run=False):
     os.makedirs(destination_dir, exist_ok=True)
 
     # Prepare dry run flag for the shell script ("true" for testing, "false" otherwise)
-    dry_run_flag = "true" if dry_run else "false"
+    dry_run_flag = "--dry-run" if dry_run else ""
 
+    date = dt.datetime.now().strftime("%Y-%m-%d")
+    # Set log file name
+    log_file = f"mv_reports_{date}.log"
     # Execute the shell script with SOURCE_DIR, DEST_DIR, and DRY_RUN flag
     try:
         result = subprocess.run(
-            ["./mv_reports.sh", source_dir, destination_dir, dry_run_flag],
+            ["./mv_reports.sh", source_dir, destination_dir, dry_run_flag, log_file],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -1209,6 +1215,8 @@ def main():
     report_pattern = rf'{report_pattern}'
     api_page_size = os.getenv("API_PAGE_SIZE")
     script_start_time_file = os.getenv("SCRIPT_START_TIME_FILE")
+    output_directory = os.getcwd()
+    clingen_directory = os.getenv("CLINGEN_DIRECTORY")
 
     args = parse_args()
     previous_start_time, current_start_time = log_start_time(
@@ -1259,7 +1267,8 @@ def main():
         matched_reports = process_reports_and_generate_excel(
             audit_logs, base_url, headers, report_pattern
         )
-        num_reports, report_names = check_failed_audit_logs(matched_reports)
+        num_reports, report_names = check_failed_audit_logs(matched_reports,
+                                                            output_directory)
         print(f"Number of reports generated: {num_reports}")
         # print report names individually
         print("Report names:")
@@ -1267,6 +1276,19 @@ def main():
             print(report_name)
     else:
         logger.info("No relevant audit logs found.")
+
+    if args.mv_reports is True and num_reports > 0 and args.testing is False:
+        logger.info("Moving reports to ClinGen directory.")
+        # Move reports to ClinGen directory
+        source_dir = output_directory
+        move_reports_to_clingen(source_dir, clingen_directory, dry_run=False)
+    elif args.mv_reports is True and num_reports > 0 and args.testing is True:
+        logger.info("Testing moving reports to ClinGen directory.")
+        # Move reports to ClinGen directory
+        source_dir = output_directory
+        move_reports_to_clingen(source_dir, clingen_directory, dry_run=True)
+    else:
+        logger.info("No reports to move to ClinGen directory.")
 
     # Trigger the notification
     send_outcome_notification()
