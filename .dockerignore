@@ -5,3 +5,8 @@ appdata/
 *.tar.gz
 *.zip
 *.tar
+*.xlsx
+*.xls
+*.csv
+*.json
+*.xml
