@@ -16,26 +16,39 @@ if [ -z "$SOURCE_DIR" ] || [ -z "$DEST_DIR" ]; then
     exit 1
 fi
 
-for file in "$SOURCE_DIR"/*.xlsx; do
-    if [ -e "$file" ]; then
-        basefile=$(basename "$file")
-        if [ -e "$DEST_DIR/$basefile" ]; then
-            if [ "$DRY_RUN" = "--dry-run" ]; then
-                echo "$(date): DRYRUN: $basefile already exists in $DEST_DIR. Not moved."
-                echo "$(date): DRYRUN: $basefile already exists in $DEST_DIR. Not moved." >> "$LOG_FILE"
-            else
-                echo "$(date): $basefile already exists in $DEST_DIR. Not moved."
-                echo "$(date): $basefile already exists in $DEST_DIR. Not moved." >> "$LOG_FILE"
-            fi
-        else
-            if [ "$DRY_RUN" = "--dry-run" ]; then
-                echo "$(date): DRYRUN: Would move $basefile to $DEST_DIR."
-                echo "$(date): DRYRUN: Would move $basefile to $DEST_DIR." >> "$LOG_FILE"
-            else
-                mv "$file" "$DEST_DIR"/
-                echo "$(date): Moved $basefile to $DEST_DIR."
-                echo "$(date): Moved $basefile to $DEST_DIR." >> "$LOG_FILE"
-            fi
-        fi
-    fi
-done
+# Validate directories exist and are accessible
+if [ ! -d "$SOURCE_DIR" ] || [ ! -r "$SOURCE_DIR" ]; then
+    echo "Error: Source directory does not exist or is not readable: $SOURCE_DIR"
+    exit 1
+fi
+
+# Ensure destination directory exists
+if [ ! -d "$DEST_DIR" ]; then
+    echo "Creating destination directory: $DEST_DIR"
+    mkdir -p "$DEST_DIR" || { echo "Failed to create destination directory"; exit 1; }
+fi
+
+# Ensure log file is writable
+touch "$LOG_FILE" 2>/dev/null || { echo "Error: Cannot write to log file: $LOG_FILE"; exit 1; }
+
+
+# Build rsync command
+RSYNC_OPTS="-avu --include='*.xlsx' --include='*/' --exclude='*'"
+
+# Add dry-run if specified
+if [ "$DRY_RUN" = "--dry-run" ]; then
+    RSYNC_OPTS="$RSYNC_OPTS --dry-run"
+    echo "$(date): DRYRUN mode enabled" | tee -a "$LOG_FILE"
+fi
+
+# Execute rsync and log output
+echo "$(date): Starting transfer of .xlsx files from $SOURCE_DIR to $DEST_DIR" | tee -a "$LOG_FILE"
+rsync $RSYNC_OPTS "$SOURCE_DIR/" "$DEST_DIR/" 2>&1 | sed 's/^/'"$(date): "'/g' | tee -a "$LOG_FILE"
+
+
+if [ "${PIPESTATUS[0]}" -eq 0 ]; then
+    echo "$(date): Transfer completed successfully" | tee -a "$LOG_FILE"
+else
+    echo "$(date): Transfer failed with error code ${PIPESTATUS[0]}" | tee -a "$LOG_FILE"
+    exit 1
+fi
