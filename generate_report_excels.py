@@ -1203,95 +1203,105 @@ def main():
     -------
     None
     """
-    logger, error_collector = setup_logging()
-    # Get environment variables
-    dotenv.load_dotenv()
-    validate_env_vars()
-    base_url = os.getenv("ICI_BASE_URL")
-    api_key = os.getenv("ICI_API_KEY")
-    audit_log_endpoint = os.getenv("ICI_AUDIT_LOG_ENDPOINT")
-    case_status_updated_event = os.getenv("ICI_CASE_STATUS_UPDATED_EVENT")
-    x_illumina_workgroup = os.getenv("X_ILMN_WORKGROUP")
-    report_pattern = os.getenv("STATUS_STRING")
-    report_pattern = rf'{report_pattern}'
-    api_page_size = os.getenv("API_PAGE_SIZE")
-    script_start_time_file = os.getenv("SCRIPT_START_TIME_FILE")
-    output_directory = os.getcwd()
-    destination_directory = os.getenv("DESTINATION_DIRECTORY")
+    try:
+        logger, error_collector = setup_logging()
+        # Get environment variables
+        dotenv.load_dotenv()
+        validate_env_vars()
+        base_url = os.getenv("ICI_BASE_URL")
+        api_key = os.getenv("ICI_API_KEY")
+        audit_log_endpoint = os.getenv("ICI_AUDIT_LOG_ENDPOINT")
+        case_status_updated_event = os.getenv("ICI_CASE_STATUS_UPDATED_EVENT")
+        x_illumina_workgroup = os.getenv("X_ILMN_WORKGROUP")
+        report_pattern = os.getenv("STATUS_STRING")
+        report_pattern = rf'{report_pattern}'
+        api_page_size = os.getenv("API_PAGE_SIZE")
+        script_start_time_file = os.getenv("SCRIPT_START_TIME_FILE")
+        output_directory = os.getcwd()
+        destination_directory = os.getenv("DESTINATION_DIRECTORY")
 
-    args = parse_args()
-    previous_start_time, current_start_time = log_start_time(
-        script_start_time_file,
-        args
-    )
-
-    # Check if the user has provided a start time
-    if not args.created_before and not args.created_after:
-        # No set created_before and no set created_after times
-        # Use the previous start time and current start time
-        created_before = current_start_time
-        created_after = previous_start_time
-    elif args.created_before and args.created_after:
-        # Both created_before and created_after are set
-        # Use the provided times
-        created_before = args.created_before
-        created_after = args.created_after
-    elif args.created_before and not args.created_after:
-        # Only created_before is set
-        # Use the provided created_before time and set created_after to None
-        created_before = args.created_before
-        created_after = None
-    elif not args.created_before and args.created_after:
-        # Only created_after is set
-        # Use the provided created_after time and set created_before to None
-        created_before = None
-        created_after = args.created_after
-    else:
-        logger.error(
-            "Runtime Error: Invalid combination of created_before and created_after arguments."
-            )
-
-    # Setup API headers
-    headers = setup_api_headers(api_key, x_illumina_workgroup)
-    # Execute script
-    logger.info("Script execution started.")
-    audit_logs = get_audit_logs(base_url, headers,
-                                case_status_updated_event,
-                                audit_log_endpoint,
-                                created_after=created_after,
-                                created_before=created_before,
-                                page_size=api_page_size
-                                )
-
-    if audit_logs:
-        logger.info("Audit logs fetched successfully.")
-        matched_reports = process_reports_and_generate_excel(
-            audit_logs, base_url, headers, report_pattern
+        args = parse_args()
+        previous_start_time, current_start_time = log_start_time(
+            script_start_time_file,
+            args
         )
-        num_reports, report_names = check_failed_audit_logs(matched_reports,
-                                                            output_directory)
-        print(f"Number of reports generated: {num_reports}")
-        # print report names individually
-        print("Report names:")
-        for report_name in report_names:
-            print(report_name)
-    else:
-        logger.info("No relevant audit logs found.")
-
-    if args.mv_reports:
-        # Move reports to ClinGen directory
-        source_dir = output_directory
-        if num_reports == 0:
-            logger.info(f"No reports to move to {destination_directory}")
+        if not destination_directory:
+            logger.error("Missing DESTINATION_DIRECTORY environment variable.")
+            raise RuntimeError(
+                "Missing DESTINATION_DIRECTORY environment variable."
+            )
+        # Check if the user has provided a start time
+        if not args.created_before and not args.created_after:
+            # No set created_before and no set created_after times
+            # Use the previous start time and current start time
+            created_before = current_start_time
+            created_after = previous_start_time
+        elif args.created_before and args.created_after:
+            # Both created_before and created_after are set
+            # Use the provided times
+            created_before = args.created_before
+            created_after = args.created_after
+        elif args.created_before and not args.created_after:
+            # Only created_before is set
+            # Use the provided created_before time and set created_after to None
+            created_before = args.created_before
+            created_after = None
+        elif not args.created_before and args.created_after:
+            # Only created_after is set
+            # Use the provided created_after time and set created_before to None
+            created_before = None
+            created_after = args.created_after
         else:
-            move_reports(source_dir, destination_directory, dry_run=args.testing)
-    else:
-        logger.info("--mv_reports not set so not moving reports")
+            logger.error(
+                "Runtime Error: Invalid combination of created_before and created_after arguments."
+                )
 
-    # Trigger the notification
-    send_outcome_notification()
+        # Setup API headers
+        headers = setup_api_headers(api_key, x_illumina_workgroup)
+        # Execute script
+        logger.info("Script execution started.")
+        audit_logs = get_audit_logs(base_url, headers,
+                                    case_status_updated_event,
+                                    audit_log_endpoint,
+                                    created_after=created_after,
+                                    created_before=created_before,
+                                    page_size=api_page_size
+                                    )
 
-    logger.info("Script execution completed.")
+        if audit_logs:
+            logger.info("Audit logs fetched successfully.")
+            matched_reports = process_reports_and_generate_excel(
+                audit_logs, base_url, headers, report_pattern
+            )
+            num_reports, report_names = check_failed_audit_logs(matched_reports,
+                                                                output_directory)
+            print(f"Number of reports generated: {num_reports}")
+            # print report names individually
+            print("Report names:")
+            for report_name in report_names:
+                print(report_name)
+        else:
+            logger.info("No relevant audit logs found.")
+
+        if args.mv_reports:
+            # Move reports to ClinGen directory
+            source_dir = output_directory
+            if num_reports == 0:
+                logger.info(f"No reports to move to {destination_directory}")
+            else:
+                move_reports(source_dir, destination_directory, dry_run=args.testing)
+        else:
+            logger.info("--mv_reports not set so not moving reports")
+
+        logger.info("Script execution completed.")
+
+    except Exception as e:
+        logger.error(f"Runtime Error: {e}")
+        raise
+
+    finally:
+        # Always Trigger the notification
+        send_outcome_notification()
 
 
 if __name__ == "__main__":
