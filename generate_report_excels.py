@@ -1217,7 +1217,7 @@ def main():
     api_page_size = os.getenv("API_PAGE_SIZE")
     script_start_time_file = os.getenv("SCRIPT_START_TIME_FILE")
     output_directory = os.getcwd()
-    destination_directory = os.getenv("destination_directory")
+    destination_directory = os.getenv("DESTINATION_DIRECTORY")
 
     args = parse_args()
     previous_start_time, current_start_time = log_start_time(
