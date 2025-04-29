@@ -1282,9 +1282,9 @@ def main():
         # Move reports to ClinGen directory
         source_dir = output_directory
         if num_reports == 0:
-            logger.info("No reports to move to {destination_directory}")
+            logger.info(f"No reports to move to {destination_directory}")
         else:
-            move_reports(source_dir, destination_directory, dry_run=args.args.testing)
+            move_reports(source_dir, destination_directory, dry_run=args.testing)
     else:
         logger.info("--mv_reports not set so not moving reports")
 
