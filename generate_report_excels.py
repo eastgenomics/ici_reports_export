@@ -1158,7 +1158,7 @@ def check_failed_audit_logs(matched_reports, search_directory='/home/rswilson1/D
 
 def move_reports(source_dir, dest_dir, dry_run=False):
     """
-    Move reports to the ClinGen folder using the mv_reports.sh script.
+    Move reports to the destination folder (ClinGen) using the mv_reports.sh script.
 
     Parameters
     ----------
