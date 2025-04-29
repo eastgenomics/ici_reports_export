@@ -1156,7 +1156,7 @@ def check_failed_audit_logs(matched_reports, search_directory='/home/rswilson1/D
     return matched_reports_count, report_names
 
 
-def move_reports_to_clingen(source_dir, destination_dir, dry_run=False):
+def move_reports(source_dir, dest_dir, dry_run=False):
     """
     Move reports to the ClinGen folder using the mv_reports.sh script.
 
@@ -1164,7 +1164,7 @@ def move_reports_to_clingen(source_dir, destination_dir, dry_run=False):
     ----------
     source_dir : str
         The source directory where the reports are located.
-    destination_dir : str
+    dest_dir : str
         The destination directory to move the reports.
     dry_run : bool
         If True, perform a dry run without moving files.
@@ -1173,8 +1173,9 @@ def move_reports_to_clingen(source_dir, destination_dir, dry_run=False):
     -------
     None
     """
+    logger.info(f"Testing moving reports to {dest_dir}.")
     # Ensure destination directory exists
-    os.makedirs(destination_dir, exist_ok=True)
+    os.makedirs(dest_dir, exist_ok=True)
 
     # Prepare dry run flag for the shell script ("true" for testing, "false" otherwise)
     dry_run_flag = "--dry-run" if dry_run else ""
@@ -1185,7 +1186,7 @@ def move_reports_to_clingen(source_dir, destination_dir, dry_run=False):
     # Execute the shell script with SOURCE_DIR, DEST_DIR, and DRY_RUN flag
     try:
         result = subprocess.run(
-            ["./mv_reports.sh", source_dir, destination_dir, dry_run_flag, log_file],
+            ["./mv_reports.sh", source_dir, dest_dir, dry_run_flag, log_file],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -1216,7 +1217,7 @@ def main():
     api_page_size = os.getenv("API_PAGE_SIZE")
     script_start_time_file = os.getenv("SCRIPT_START_TIME_FILE")
     output_directory = os.getcwd()
-    clingen_directory = os.getenv("CLINGEN_DIRECTORY")
+    destination_directory = os.getenv("destination_directory")
 
     args = parse_args()
     previous_start_time, current_start_time = log_start_time(
@@ -1277,18 +1278,15 @@ def main():
     else:
         logger.info("No relevant audit logs found.")
 
-    if args.mv_reports is True and num_reports > 0 and args.testing is False:
-        logger.info("Moving reports to ClinGen directory.")
+    if args.mv_reports:
         # Move reports to ClinGen directory
         source_dir = output_directory
-        move_reports_to_clingen(source_dir, clingen_directory, dry_run=False)
-    elif args.mv_reports is True and num_reports > 0 and args.testing is True:
-        logger.info("Testing moving reports to ClinGen directory.")
-        # Move reports to ClinGen directory
-        source_dir = output_directory
-        move_reports_to_clingen(source_dir, clingen_directory, dry_run=True)
+        if num_reports == 0:
+            logger.info("No reports to move to {destination_directory}")
+        else:
+            move_reports(source_dir, destination_directory, dry_run=args.args.testing)
     else:
-        logger.info("No reports to move to ClinGen directory.")
+        logger.info("--mv_reports not set so not moving reports")
 
     # Trigger the notification
     send_outcome_notification()
