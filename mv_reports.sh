@@ -31,13 +31,14 @@ fi
 # Ensure log file is writable
 touch "$LOG_FILE" 2>/dev/null || { echo "Error: Cannot write to log file: $LOG_FILE"; exit 1; }
 
+RSYNC_ARGS=(-avu --include='*.xlsx' --include='*/' --exclude='*')
 # Execute rsync and log output
 if [ "$DRY_RUN" = "--dry-run" ]; then
     echo "$(date): DRYRUN mode enabled" | tee -a "$LOG_FILE"
-    rsync -avu --include='*.xlsx' --include='*/' --exclude='*' --dry-run "$SOURCE_DIR/" "$DEST_DIR/" 2>&1 | sed 's/^/'"$(date): "'/g' | tee -a "$LOG_FILE"
+    rsync --dry-run "${RSYNC_ARGS[@]}" "$SOURCE_DIR/" "$DEST_DIR/" 2>&1 | sed 's/^/'"$(date): "'/g' | tee -a "$LOG_FILE"
 else
     echo "$(date): Starting transfer of .xlsx files from $SOURCE_DIR to $DEST_DIR" | tee -a "$LOG_FILE"
-    rsync -avu --include='*.xlsx' --include='*/' --exclude='*' "$SOURCE_DIR/" "$DEST_DIR/" 2>&1 | sed 's/^/'"$(date): "'/g' | tee -a "$LOG_FILE"
+    rsync "${RSYNC_ARGS[@]}" "$SOURCE_DIR/" "$DEST_DIR/" 2>&1 | sed 's/^/'"$(date): "'/g' | tee -a "$LOG_FILE"
 fi
 
 # Check if rsync was successful
