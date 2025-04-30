@@ -21,6 +21,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from requests.exceptions import RequestException
 from functools import reduce
+import subprocess
 
 # Local imports
 from utils.notify_slack import SlackClient
@@ -191,6 +192,14 @@ def parse_args():
     parser.add_argument('--created_after', type=str, default=None,
                         help='The date string in the format YYYY-MM-DD\'T\'HH:MM:SS\'Z\''
                         'e.g: 2024-01-01T08:30:00Z to filter reports created after this date.')
+    parser.add_argument('--mv_reports',
+                        default=False,
+                        action='store_true',
+                        help='Move reports to the ClinGen folder in the ICI API.')
+    parser.add_argument('--testing',
+                        action='store_true',
+                        default=False,
+                        help='Run the script in testing mode.')
     args = parser.parse_args()
 
     # Validate inputs
@@ -448,6 +457,7 @@ def process_reports_and_generate_excel(audit_logs,
                                        base_url,
                                        headers,
                                        report_pattern,
+                                       output_directory
                                        ):
     """
     Process audit logs to fetch reports and generate an Excel file.
@@ -463,6 +473,8 @@ def process_reports_and_generate_excel(audit_logs,
         The headers for the API request, including authentication.
     report_pattern : str
         The regex pattern to match in the report text.
+    output_directory : str
+        The directory where the generated Excel file will be saved.
 
     Returns
     -------
@@ -525,7 +537,7 @@ def process_reports_and_generate_excel(audit_logs,
             json_extract_to_excel(
                 sample_id, case_info, snvs_variants_info,
                 cnvs_variants_info, indels_variants_info,
-                tmb_msi_metric_info
+                tmb_msi_metric_info, output_directory
             )
     else:
         logger.warning("No matched reports found to generate Excel.")
@@ -979,7 +991,8 @@ def write_section(writer, df, header, start_col=0, start_row=0):
 
 def json_extract_to_excel(sample_id, case_info,
                           snvs_variants_info, cnvs_variants_info,
-                          indels_variants_info, tmb_msi_metric_info
+                          indels_variants_info, tmb_msi_metric_info,
+                          output_directory
                           ):
     """
     Extract information from a JSON file and write to an Excel file
@@ -1002,6 +1015,8 @@ def json_extract_to_excel(sample_id, case_info,
     tmb_msi_metric_info : list
         A list of dictionaries containing metric information
         for TMB/MSI.
+    output_directory : str
+        The directory where the Excel file will be saved.
 
     Outputs
     -------
@@ -1020,7 +1035,8 @@ def json_extract_to_excel(sample_id, case_info,
     --------
     >>> json_extract_to_excel("sample_id", case_info,
                               snvs_variants_info, cnvs_variants_info,
-                              indels_variants_info, tmb_msi_metric_info
+                              indels_variants_info, tmb_msi_metric_info,
+                              output_directory
                              )
 
     """
@@ -1054,7 +1070,7 @@ def json_extract_to_excel(sample_id, case_info,
     tmb_msi_metric_info_df = pd.DataFrame([tmb_msi_metric_info])
 
     # Write the extracted information to an Excel file
-    with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx", engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(os.path.join(output_directory, f"{sample_id}_extracted_information.xlsx"), engine='xlsxwriter') as writer:
         single_sheet_name = "Reported_Variants_and_Metrics"
         workbook = writer.book
         worksheet = workbook.add_worksheet(single_sheet_name)
@@ -1147,6 +1163,46 @@ def check_failed_audit_logs(matched_reports, search_directory='/home/rswilson1/D
     return matched_reports_count, report_names
 
 
+def move_reports(source_dir, dest_dir, dry_run=False):
+    """
+    Move reports to the destination folder (ClinGen) using the mv_reports.sh script.
+
+    Parameters
+    ----------
+    source_dir : str
+        The source directory where the reports are located.
+    dest_dir : str
+        The destination directory to move the reports.
+    dry_run : bool
+        If True, perform a dry run without moving files.
+
+    Returns
+    -------
+    None
+    """
+    logger.info(f"Testing moving reports to {dest_dir}.")
+    # Ensure destination directory exists
+    os.makedirs(dest_dir, exist_ok=True)
+
+    # Prepare dry run flag for the shell script ("true" for testing, "false" otherwise)
+    dry_run_flag = "--dry-run" if dry_run else ""
+
+    date = dt.datetime.now().strftime("%Y-%m-%d")
+    # Set log file name
+    log_file = f"mv_reports_{date}.log"
+    # Execute the shell script with SOURCE_DIR, DEST_DIR, and DRY_RUN flag
+    try:
+        result = subprocess.run(
+            ["./mv_reports.sh", source_dir, dest_dir, dry_run_flag, log_file],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        logging.info("Reports moved successfully: %s", result.stdout.decode())
+    except subprocess.CalledProcessError as e:
+        logging.error("Failed to move reports using mv_reports.sh: %s", e.stderr.decode())
+
+
 def main():
     """
     Main function to initialize constants and execute the script.
@@ -1154,82 +1210,108 @@ def main():
     -------
     None
     """
-    logger, error_collector = setup_logging()
-    # Get environment variables
-    dotenv.load_dotenv()
-    validate_env_vars()
-    base_url = os.getenv("ICI_BASE_URL")
-    api_key = os.getenv("ICI_API_KEY")
-    audit_log_endpoint = os.getenv("ICI_AUDIT_LOG_ENDPOINT")
-    case_status_updated_event = os.getenv("ICI_CASE_STATUS_UPDATED_EVENT")
-    x_illumina_workgroup = os.getenv("X_ILMN_WORKGROUP")
-    report_pattern = os.getenv("STATUS_STRING")
-    report_pattern = rf'{report_pattern}'
-    api_page_size = os.getenv("API_PAGE_SIZE")
-    script_start_time_file = os.getenv("SCRIPT_START_TIME_FILE")
+    try:
+        logger, error_collector = setup_logging()
+        # Get environment variables
+        dotenv.load_dotenv()
+        validate_env_vars()
+        base_url = os.getenv("ICI_BASE_URL")
+        api_key = os.getenv("ICI_API_KEY")
+        audit_log_endpoint = os.getenv("ICI_AUDIT_LOG_ENDPOINT")
+        case_status_updated_event = os.getenv("ICI_CASE_STATUS_UPDATED_EVENT")
+        x_illumina_workgroup = os.getenv("X_ILMN_WORKGROUP")
+        report_pattern = os.getenv("STATUS_STRING")
+        report_pattern = rf'{report_pattern}'
+        api_page_size = os.getenv("API_PAGE_SIZE")
+        script_start_time_file = os.getenv("SCRIPT_START_TIME_FILE")
+        output_directory = os.path.join(os.getcwd(), "output")
+        os.makedirs(output_directory, exist_ok=True)
+        print(f"Output directory: {output_directory}")
+        destination_directory = os.getenv("DESTINATION_DIRECTORY")
 
-    args = parse_args()
-    previous_start_time, current_start_time = log_start_time(
-        script_start_time_file,
-        args
-    )
-
-    # Check if the user has provided a start time
-    if not args.created_before and not args.created_after:
-        # No set created_before and no set created_after times
-        # Use the previous start time and current start time
-        created_before = current_start_time
-        created_after = previous_start_time
-    elif args.created_before and args.created_after:
-        # Both created_before and created_after are set
-        # Use the provided times
-        created_before = args.created_before
-        created_after = args.created_after
-    elif args.created_before and not args.created_after:
-        # Only created_before is set
-        # Use the provided created_before time and set created_after to None
-        created_before = args.created_before
-        created_after = None
-    elif not args.created_before and args.created_after:
-        # Only created_after is set
-        # Use the provided created_after time and set created_before to None
-        created_before = None
-        created_after = args.created_after
-    else:
-        logger.error(
-            "Runtime Error: Invalid combination of created_before and created_after arguments."
-            )
-
-    # Setup API headers
-    headers = setup_api_headers(api_key, x_illumina_workgroup)
-    # Execute script
-    logger.info("Script execution started.")
-    audit_logs = get_audit_logs(base_url, headers,
-                                case_status_updated_event,
-                                audit_log_endpoint,
-                                created_after=created_after,
-                                created_before=created_before,
-                                page_size=api_page_size
-                                )
-
-    if audit_logs:
-        logger.info("Audit logs fetched successfully.")
-        matched_reports = process_reports_and_generate_excel(
-            audit_logs, base_url, headers, report_pattern
+        args = parse_args()
+        previous_start_time, current_start_time = log_start_time(
+            script_start_time_file,
+            args
         )
-        num_reports, report_names = check_failed_audit_logs(matched_reports)
-        print(f"Number of reports generated: {num_reports}")
-        # print report names individually
-        print("Report names:")
-        for report_name in report_names:
-            print(report_name)
-    else:
-        logger.info("No relevant audit logs found.")
+        if not destination_directory:
+            logger.error("Missing DESTINATION_DIRECTORY environment variable.")
+            raise RuntimeError(
+                "Missing DESTINATION_DIRECTORY environment variable."
+            )
+        # Check if the user has provided a start time
+        if not args.created_before and not args.created_after:
+            # No set created_before and no set created_after times
+            # Use the previous start time and current start time
+            created_before = current_start_time
+            created_after = previous_start_time
+        elif args.created_before and args.created_after:
+            # Both created_before and created_after are set
+            # Use the provided times
+            created_before = args.created_before
+            created_after = args.created_after
+        elif args.created_before and not args.created_after:
+            # Only created_before is set
+            # Use the provided created_before time and set created_after to None
+            created_before = args.created_before
+            created_after = None
+        elif not args.created_before and args.created_after:
+            # Only created_after is set
+            # Use the provided created_after time and set created_before to None
+            created_before = None
+            created_after = args.created_after
+        else:
+            logger.error(
+                "Runtime Error: Invalid combination of created_before and created_after arguments."
+                )
 
-    # Trigger the notification
-    send_outcome_notification()
+        # Setup API headers
+        headers = setup_api_headers(api_key, x_illumina_workgroup)
+        # Execute script
+        logger.info("Script execution started.")
+        audit_logs = get_audit_logs(base_url, headers,
+                                    case_status_updated_event,
+                                    audit_log_endpoint,
+                                    created_after=created_after,
+                                    created_before=created_before,
+                                    page_size=api_page_size
+                                    )
 
-    logger.info("Script execution completed.")
+        if audit_logs:
+            logger.info("Audit logs fetched successfully.")
+            matched_reports = process_reports_and_generate_excel(
+                audit_logs, base_url, headers, report_pattern,
+                output_directory
+            )
+            num_reports, report_names = check_failed_audit_logs(matched_reports,
+                                                                output_directory)
+            print(f"Number of reports generated: {num_reports}")
+            # print report names individually
+            print("Report names:")
+            for report_name in report_names:
+                print(report_name)
+        else:
+            logger.info("No relevant audit logs found.")
+
+        if args.mv_reports:
+            # Move reports to ClinGen directory
+            source_dir = output_directory
+            if num_reports == 0:
+                logger.info(f"No reports to move to {destination_directory}")
+            else:
+                move_reports(source_dir, destination_directory, dry_run=args.testing)
+        else:
+            logger.info("--mv_reports not set so not moving reports")
+
+        logger.info("Script execution completed.")
+
+    except Exception as e:
+        logger.error(f"Runtime Error: {e}")
+        raise
+
+    finally:
+        # Always Trigger the notification
+        send_outcome_notification()
 
 
 if __name__ == "__main__":
