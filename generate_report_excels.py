@@ -457,6 +457,7 @@ def process_reports_and_generate_excel(audit_logs,
                                        base_url,
                                        headers,
                                        report_pattern,
+                                       output_directory
                                        ):
     """
     Process audit logs to fetch reports and generate an Excel file.
@@ -472,6 +473,8 @@ def process_reports_and_generate_excel(audit_logs,
         The headers for the API request, including authentication.
     report_pattern : str
         The regex pattern to match in the report text.
+    output_directory : str
+        The directory where the generated Excel file will be saved.
 
     Returns
     -------
@@ -534,7 +537,7 @@ def process_reports_and_generate_excel(audit_logs,
             json_extract_to_excel(
                 sample_id, case_info, snvs_variants_info,
                 cnvs_variants_info, indels_variants_info,
-                tmb_msi_metric_info
+                tmb_msi_metric_info, output_directory
             )
     else:
         logger.warning("No matched reports found to generate Excel.")
@@ -988,7 +991,8 @@ def write_section(writer, df, header, start_col=0, start_row=0):
 
 def json_extract_to_excel(sample_id, case_info,
                           snvs_variants_info, cnvs_variants_info,
-                          indels_variants_info, tmb_msi_metric_info
+                          indels_variants_info, tmb_msi_metric_info,
+                          output_directory
                           ):
     """
     Extract information from a JSON file and write to an Excel file
@@ -1011,6 +1015,8 @@ def json_extract_to_excel(sample_id, case_info,
     tmb_msi_metric_info : list
         A list of dictionaries containing metric information
         for TMB/MSI.
+    output_directory : str
+        The directory where the Excel file will be saved.
 
     Outputs
     -------
@@ -1029,7 +1035,8 @@ def json_extract_to_excel(sample_id, case_info,
     --------
     >>> json_extract_to_excel("sample_id", case_info,
                               snvs_variants_info, cnvs_variants_info,
-                              indels_variants_info, tmb_msi_metric_info
+                              indels_variants_info, tmb_msi_metric_info,
+                              output_directory
                              )
 
     """
@@ -1063,7 +1070,7 @@ def json_extract_to_excel(sample_id, case_info,
     tmb_msi_metric_info_df = pd.DataFrame([tmb_msi_metric_info])
 
     # Write the extracted information to an Excel file
-    with pd.ExcelWriter(f"{sample_id}_extracted_information.xlsx", engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(os.path.join(output_directory, f"{sample_id}_extracted_information.xlsx"), engine='xlsxwriter') as writer:
         single_sheet_name = "Reported_Variants_and_Metrics"
         workbook = writer.book
         worksheet = workbook.add_worksheet(single_sheet_name)
@@ -1217,7 +1224,9 @@ def main():
         report_pattern = rf'{report_pattern}'
         api_page_size = os.getenv("API_PAGE_SIZE")
         script_start_time_file = os.getenv("SCRIPT_START_TIME_FILE")
-        output_directory = os.getcwd()
+        output_directory = os.path.join(os.getcwd(), "output")
+        os.makedirs(output_directory, exist_ok=True)
+        print(f"Output directory: {output_directory}")
         destination_directory = os.getenv("DESTINATION_DIRECTORY")
 
         args = parse_args()
@@ -1271,7 +1280,8 @@ def main():
         if audit_logs:
             logger.info("Audit logs fetched successfully.")
             matched_reports = process_reports_and_generate_excel(
-                audit_logs, base_url, headers, report_pattern
+                audit_logs, base_url, headers, report_pattern,
+                output_directory
             )
             num_reports, report_names = check_failed_audit_logs(matched_reports,
                                                                 output_directory)

@@ -1,4 +1,6 @@
 old_reports/
+data/
+__pycache__/
 htmlcov/
 appdata/
 *.log
