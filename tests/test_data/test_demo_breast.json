@@ -1,0 +1,2294 @@
+{
+  "tags": [
+    "Report Test",
+    "TEST"
+  ],
+  "id": "07b44cad-2b84-44cb-9f84-a95488a7b645",
+  "displayId": "DEMO_002_BREAST",
+  "updatedDate": "2024-11-08T14:11:35+0000",
+  "analysisId": "TruSight_Oncology_500_Solid_HRD_20241105_132552_DEMO_002_BREAST_DNA_RNA_TSO500_V3",
+  "workflowName": "DRAGEN TruSight Oncology 500 Analysis Software v2.5.2 (with HRD)",
+  "testDefinition": {
+    "reports": [
+      {
+        "id": "f4042d6c-cf0d-4929-be3d-7b6a58e6a865",
+        "testMethodology": null,
+        "probandOnly": null,
+        "name": "Default Report",
+        "order": 1,
+        "timeModified": "2024-10-18T11:54:33.256059Z",
+        "timeCreated": "2024-10-18T11:54:33.256059Z",
+        "reportCategory": null,
+        "filters": [
+          {
+            "filterHref": null,
+            "filterId": null
+          },
+          {
+            "filterHref": null,
+            "filterId": null
+          },
+          {
+            "filterHref": null,
+            "filterId": null
+          }
+        ],
+        "reportFlagGroup": null,
+        "reportTemplate": {
+          "id": "dadf95b5-03d2-4086-a12f-85a7fb97f2e8",
+          "timeCreated": 1729252068196,
+          "timeModified": 1729252074439,
+          "createdBy": "89cb3f10-5d97-3a65-a00a-eec9805f8abf",
+          "modifiedBy": "89cb3f10-5d97-3a65-a00a-eec9805f8abf",
+          "name": "defaultReportTemplate-v2.odt",
+          "fileNameGuid": "defaultReportTemplate-v2.odt",
+          "externalFileId": "fil.b12e8d3ce0c240ce33f108dceeb2c1e1",
+          "displayName": "Pre-configured Demo Report Template (Version 2)",
+          "type": "REPORT_TEMPLATE",
+          "path": "/e81b75ce-6e07-38e1-bdac-f3eab93f7a6e/custom-filter-file/report-templates/576d9390-d625-424c-939b-f130a4975ed1/",
+          "protocol": "ICA",
+          "state": "ACTIVE",
+          "version": {
+            "version": "1",
+            "versionType": "LATEST",
+            "systemGenerated": true
+          },
+          "volumeName": null,
+          "referenceGenomeBuildEnum": null,
+          "fileStatus": "COMPLETE",
+          "errorLines": [],
+          "warningLines": [],
+          "associatedFiles": [],
+          "fileSize": 130280
+        },
+        "reportMetadata": [
+          {
+            "id": "9e1fdf38-17ee-4c38-9068-aea888f229ee",
+            "name": "Pre-configured Demo Flags",
+            "description": "Pre-configured Demo Flags",
+            "type": "ReportFlag",
+            "data": [
+              {
+                "id": "39deb732-bc8f-467f-8064-0623a61449df",
+                "name": "Strong",
+                "order": 1,
+                "flagColor": "#DE3439",
+                "backgroundColor": "#EB8B8E"
+              },
+              {
+                "id": "c2a448c5-ebfc-4fa2-995c-f57e3b89e492",
+                "name": "Maybe",
+                "order": 2,
+                "flagColor": "#F5B500",
+                "backgroundColor": "#FFDE7F"
+              },
+              {
+                "id": "ccc483ed-3d0b-4131-9ac9-a1f61ee1ca71",
+                "name": "Needs Review",
+                "order": 3,
+                "flagColor": "#67788E",
+                "backgroundColor": "#DEE1E6"
+              },
+              {
+                "id": "e92d8971-9529-43dc-a0d6-e378ea7db621",
+                "name": "Exclude",
+                "order": 4,
+                "flagColor": "#262626",
+                "backgroundColor": "#767676"
+              }
+            ]
+          },
+          {
+            "id": "f3e9c203-8b48-46ff-b6b8-45b147519eee",
+            "name": "Default",
+            "description": "Default Report Label for the workgroup",
+            "type": "ReportCategoryLabel",
+            "data": [
+              {
+                "id": "189f28ed-85a2-458b-8b3b-ce3bddef014d",
+                "name": "Positive",
+                "order": 1,
+                "description": "Positive"
+              },
+              {
+                "id": "0eb131ea-3cfd-45fa-8e34-c5f9ed507b4d",
+                "name": "Negative",
+                "order": 2,
+                "description": "Negative"
+              },
+              {
+                "id": "f1dbb819-ce1b-4521-9a53-8aeb702133ff",
+                "name": "See Below",
+                "order": 3,
+                "description": "See Below"
+              }
+            ]
+          }
+        ],
+        "type": "TSS_ONC_REPORT",
+        "subject": "PROBAND",
+        "optional": false
+      }
+    ],
+    "status": "LIVE",
+    "timeCreated": "2024-10-18T11:54:33.256059Z",
+    "type": null,
+    "testType": null,
+    "qcThresholds": null,
+    "version": "1",
+    "id": "1b443614-6c63-4d73-964c-deaba994abd0",
+    "analysisPipeline": {
+      "sampleClassification": "TUMOR",
+      "cloudFlowVersion": null,
+      "referenceGenomeBuild": "GRCh37",
+      "analysisQc": {},
+      "analysisName": null,
+      "workflowName": "from_onc_analysis",
+      "workflowVersion": "5.0.1",
+      "exome": false,
+      "fastQWorkflow": false,
+      "pipelineVersion": null,
+      "variantsWorkflow": false,
+      "qcCoverageFile": null,
+      "targetRegionsBedFile": null
+    },
+    "modifiedByUserName": null,
+    "name": "TSO500 HRD Test with Automation",
+    "timeModified": "2024-10-18T11:54:33.256059Z",
+    "userName": null,
+    "turnAroundTime": null,
+    "interpretation": {
+      "allosomalAnnotationFormat": "RefSeq",
+      "autosomalAnnotationFormat": "RefSeq",
+      "mitochondrialAnnotationFormat": "Ensembl",
+      "automaticallyBulkSendForCuration": "0",
+      "reciprocalOverlapThreshold": "0.75",
+      "interpretationFileDetailAssociations": null
+    },
+    "allowedActions": [
+      "VIEW"
+    ],
+    "cloudFlow": null,
+    "dragonVersion": null,
+    "annotationVersion": null
+  },
+  "createdDate": "2024-11-05T12:26:06+0000",
+  "createdBy": "89cb3f10-5d97-3a65-a00a-eec9805f8abf",
+  "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+  "subjects": [
+    {
+      "id": "43d7dad8-0f9f-4e7e-a47e-db186584349d",
+      "updatedDate": null,
+      "gender": "MALE",
+      "createdDate": null,
+      "reports": [
+        {
+          "subjectReportId": "5e273e88-db60-44bb-aef3-cec0dffe721a",
+          "reportType": "TSS_ONC_REPORT",
+          "testReportId": "f4042d6c-cf0d-4929-be3d-7b6a58e6a865",
+          "reportDetails": {
+            "id": "d3347d76-4739-495d-a875-1f7199f5422b",
+            "creationDate": "2024-11-05T12:40:46.281Z",
+            "updateDate": "2024-11-08T14:14:14.958Z",
+            "createdBy": "89cb3f10-5d97-3a65-a00a-eec9805f8abf",
+            "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+            "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+            "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+            "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+            "notes": [
+              {
+                "name": "Interpretation Summary",
+                "value": "Two Pathogenic variants\n",
+                "order": 1
+              }
+            ],
+            "variants": [
+              {
+                "id": "7f3100e7-d4b6-4db5-a68a-0e7bc1b361f8",
+                "creationDate": "2024-11-08T11:57:07.981Z",
+                "updateDate": "2024-11-08T11:57:07.989Z",
+                "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                "variantId": "6-135502649-135539115-G-<DEL>-CNV",
+                "parentVariantId": null,
+                "linkedVariants": [],
+                "notes": null,
+                "status": "Enabled",
+                "gene": "MYB",
+                "geneDisplay": "MYB",
+                "chromosome": "6",
+                "start": 135502650,
+                "stop": 135539115,
+                "matchedEndChromosome": null,
+                "matchedEndPosition": null,
+                "refAllele": "N",
+                "altAllele": "<DEL>",
+                "foldChange": 0.64877,
+                "transcript": {
+                  "name": "NM_001130173.2",
+                  "hgvsc": null,
+                  "hgvsp": null,
+                  "exons": "1-16/16",
+                  "proteinId": "NP_001123645.1",
+                  "aminoAcids": null,
+                  "proteinPos": null,
+                  "consequences": [
+                    {
+                      "label": "Feature Truncation",
+                      "consequence": "feature_truncation"
+                    },
+                    {
+                      "label": "Copy Number Decrease",
+                      "consequence": "copy_number_decrease"
+                    },
+                    {
+                      "label": "Loss of Heterozygosity",
+                      "consequence": "loss_of_heterozygosity"
+                    },
+                    {
+                      "label": "Transcript Variant",
+                      "consequence": "transcript_variant"
+                    }
+                  ],
+                  "introns": "1-15/15",
+                  "canonical": true,
+                  "preferred": false,
+                  "selected": false,
+                  "primateAI": null,
+                  "polyPhenScore": null,
+                  "polyPhenPrediction": null,
+                  "siftScore": null,
+                  "siftPrediction": null,
+                  "revelScore": null,
+                  "pli": 0.819,
+                  "nspeciesAA": null,
+                  "geneFusions": null,
+                  "default": true
+                },
+                "zygosity": "Heterozygous",
+                "variantType": "Copy Number Loss",
+                "variantCategory": "Copy Number Variant",
+                "copyNumber": 1,
+                "inheritedFrom": null,
+                "frequency": null,
+                "cytogeneticBand": "6q23.3",
+                "repeatUnit": null,
+                "repeatNumber": null,
+                "length": 36466,
+                "modesOfInheritance": [],
+                "sampleMetrics": [
+                  {
+                    "affectedStatus": "AFFECTED",
+                    "alleleDepth": null,
+                    "copyNumber": 1,
+                    "genotype": "0/1",
+                    "genotypeQuality": null,
+                    "pairedEndReadCount": null,
+                    "relationship": "PROBAND",
+                    "sampleId": "DEMO_002_BREAST_DNA",
+                    "splitReadCount": null,
+                    "totalDepth": null,
+                    "vrf": null,
+                    "zygosity": "Heterozygous",
+                    "smn1CN": null,
+                    "smn1AlleleDepth": null,
+                    "smn2CN": null,
+                    "smn2AlleleDepth": null,
+                    "carrierStatus": null,
+                    "supportingReads": null,
+                    "foldChange": 0.64877,
+                    "somaticStatus": "TUMOR",
+                    "somaticQuality": null,
+                    "lossOfHeterozygosity": false,
+                    "minorHaplotypeCopyNumber": 0
+                  }
+                ],
+                "variantReadFrequency": null,
+                "numberOfOverlappingGenes": 1,
+                "geneticFindings": [
+                  {
+                    "relationship": "PROBAND",
+                    "sampleId": "DEMO_002_BREAST_DNA",
+                    "affectedStatus": "AFFECTED"
+                  }
+                ],
+                "spliceAI": null,
+                "spliceAIScore": null,
+                "primateAI": [],
+                "maxPrimateAI": null,
+                "maxPli": 0.819,
+                "phylopScore": null,
+                "alleleCount": null,
+                "homozygoteCount": null,
+                "hemizygoteCount": null,
+                "frequencies": {},
+                "emedgene": null,
+                "mostSignificantPopFreq": null,
+                "dbsnp": null,
+                "smn1CN": null,
+                "smn2CN": null,
+                "associations": [
+                  {
+                    "id": "a48f4eca-a90f-4d4e-ab18-3252fc577da7",
+                    "creationDate": "2024-11-08T11:57:07.988Z",
+                    "updateDate": "2024-11-08T14:00:03.066Z",
+                    "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                    "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                    "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                    "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                    "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                    "associationId": "WVhkekxYVnpMWEJzWVhSbWIzSnRPakV3TURBeE9ETTBPalEyWVRZeE9HWTRMV1l6WWpjdE5HUmlZUzFpWTJKbExXUmtZbUUxTWpZeFltTXpNUTo2NmUzZjhiOC0zM2RhLTQyYzAtYjY0MS03M2IyZmY1Yjk5YzQ=",
+                    "associationVersion": "v1",
+                    "type": "Biological",
+                    "source": "My Knowledgebase",
+                    "visibility": "Visible",
+                    "actionabilityOrder": 1,
+                    "actionabilityBackgroundColor": "#DD203C",
+                    "actionabilityFontColor": "#FFFFFF",
+                    "actionabilityName": "Oncogenic",
+                    "tumorTypes": [
+                      {
+                        "id": "86250b06-eef0-41d1-9247-aefce618233e",
+                        "creationDate": "2024-11-05T12:40:46.281Z",
+                        "updateDate": "2024-11-05T12:40:46.281Z",
+                        "createdBy": "89cb3f10-5d97-3a65-a00a-eec9805f8abf",
+                        "updatedBy": "89cb3f10-5d97-3a65-a00a-eec9805f8abf",
+                        "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                        "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                        "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                        "name": "Malignant tumor of breast",
+                        "externalId": "254837009",
+                        "ontologyType": "SNOMEDCT",
+                        "version": "SNOMEDCT_US_2021_09_01",
+                        "clusters": null
+                      }
+                    ],
+                    "summary": "Pathogenic variant analysed by RSW\nTEST\nNOT ACCURATE ASSERTION",
+                    "reportedByAutomation": false,
+                    "caseId": "07b44cad-2b84-44cb-9f84-a95488a7b645",
+                    "variantId": "6-135502649-135539115-G-<DEL>-CNV",
+                    "reportId": "5e273e88-db60-44bb-aef3-cec0dffe721a",
+                    "matchesSubjectDisease": true,
+                    "reportDate": "2024-11-08T14:14:14.958Z",
+                    "associationInfo": {
+                      "id": "WVhkekxYVnpMWEJzWVhSbWIzSnRPakV3TURBeE9ETTBPalEyWVRZeE9HWTRMV1l6WWpjdE5HUmlZUzFpWTJKbExXUmtZbUUxTWpZeFltTXpNUTo2NmUzZjhiOC0zM2RhLTQyYzAtYjY0MS03M2IyZmY1Yjk5YzQ=",
+                      "version": "v1",
+                      "type": "Biological",
+                      "source": "My Knowledgebase",
+                      "status": "Enabled",
+                      "visibility": "Visible",
+                      "actionabilityOrder": 1,
+                      "actionabilityBackgroundColor": "#DD203C",
+                      "actionabilityFontColor": "#FFFFFF",
+                      "actionabilityName": "Oncogenic",
+                      "hrd": null,
+                      "draftAssociationId": null,
+                      "direction": null,
+                      "confidence": null,
+                      "mechanism": null,
+                      "validationLevel": null,
+                      "curatorSummary": "Pathogenic variant analysed by RSW\nTEST\nNOT ACCURATE ASSERTION",
+                      "curatorNotes": "TEST",
+                      "registryId": null,
+                      "registry": null,
+                      "externalLink": null,
+                      "phase": null,
+                      "locations": null,
+                      "contexts": [
+                        {
+                          "type": "Disease Indication",
+                          "name": "Neoplastic disease",
+                          "externalId": "55342001",
+                          "ontologyType": "SNOMEDCT",
+                          "version": "SNOMEDCT_US_2021_09_01",
+                          "clusters": [
+                            {
+                              "clusterId": "C1882062"
+                            }
+                          ],
+                          "ontologyGroupId": "55342001",
+                          "ontologyGroup": "SNOMEDCT",
+                          "ontologyVersion": "SNOMEDCT_US_2021_09_01"
+                        }
+                      ],
+                      "biomarkers": [
+                        {
+                          "type": "Copy Number Variant",
+                          "chromosome": "6",
+                          "start": 135502650,
+                          "stop": 135539115,
+                          "curationLevel": "Annotation Overlap",
+                          "vid": "6-135502649-135539115-G-<DEL>-CNV",
+                          "genomeBuild": "37",
+                          "variantType": "Copy Number Loss",
+                          "consequences": [],
+                          "cytogeneticBand": "6q23.3",
+                          "vepVersion": "91",
+                          "updateDate": "2024-11-08T11:57:07.762Z",
+                          "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                          "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                          "creationDate": "2024-11-08T11:57:07.762Z",
+                          "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                          "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                          "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ"
+                        }
+                      ],
+                      "evidences": [],
+                      "geneRoles": null,
+                      "approvalAuthorities": [],
+                      "reports": [],
+                      "creationDate": "2024-11-08T11:57:07.762Z",
+                      "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "updateDate": "2024-11-08T11:57:07.762Z",
+                      "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                      "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                      "matchesSubjectDisease": true,
+                      "submittedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "nodeName": "UK_east-glh_6000020919",
+                      "assignedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "assignedToName": "Robert Wilson",
+                      "draft": false,
+                      "assignedByName": "Robert Wilson",
+                      "domainName": "eval-uki",
+                      "criteriaList": [],
+                      "submittedDate": "2024-11-08T11:57:07.762Z",
+                      "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                      "assignedTo": "a5fbb4c9-f587-332e-a096-a46be14da609"
+                    }
+                  }
+                ],
+                "categories": [],
+                "customLabels": {
+                  "RegionLOH": {
+                    "source": "RegionLOH",
+                    "labels": [
+                      "LOH Region"
+                    ],
+                    "scores": [],
+                    "field": "RegionLOH"
+                  }
+                },
+                "germlineStatus": null,
+                "maxCosmic": null,
+                "maxCancerHotspotSample": null,
+                "supportingReads": null
+              },
+              {
+                "id": "8927ccec-8054-483c-b565-7bb7959d435e",
+                "creationDate": "2024-11-08T11:57:45.462Z",
+                "updateDate": "2024-11-08T11:57:45.468Z",
+                "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                "variantId": "6-106534426-106555363-C-<DEL>-CNV",
+                "parentVariantId": null,
+                "linkedVariants": [],
+                "notes": null,
+                "status": "Enabled",
+                "gene": "PRDM1",
+                "geneDisplay": "PRDM1",
+                "chromosome": "6",
+                "start": 106534427,
+                "stop": 106555363,
+                "matchedEndChromosome": null,
+                "matchedEndPosition": null,
+                "refAllele": "N",
+                "altAllele": "<DEL>",
+                "foldChange": 0.633712,
+                "transcript": {
+                  "name": "NM_001198.4",
+                  "hgvsc": null,
+                  "hgvsp": null,
+                  "exons": "1-7/7",
+                  "proteinId": "NP_001189.2",
+                  "aminoAcids": null,
+                  "proteinPos": null,
+                  "consequences": [
+                    {
+                      "label": "Feature Truncation",
+                      "consequence": "feature_truncation"
+                    },
+                    {
+                      "label": "Copy Number Decrease",
+                      "consequence": "copy_number_decrease"
+                    },
+                    {
+                      "label": "Loss of Heterozygosity",
+                      "consequence": "loss_of_heterozygosity"
+                    },
+                    {
+                      "label": "Transcript Variant",
+                      "consequence": "transcript_variant"
+                    }
+                  ],
+                  "introns": "1-6/6",
+                  "canonical": true,
+                  "preferred": false,
+                  "selected": false,
+                  "primateAI": null,
+                  "polyPhenScore": null,
+                  "polyPhenPrediction": null,
+                  "siftScore": null,
+                  "siftPrediction": null,
+                  "revelScore": null,
+                  "pli": 0.957,
+                  "nspeciesAA": null,
+                  "geneFusions": null,
+                  "default": true
+                },
+                "zygosity": "Heterozygous",
+                "variantType": "Copy Number Loss",
+                "variantCategory": "Copy Number Variant",
+                "copyNumber": 1,
+                "inheritedFrom": null,
+                "frequency": null,
+                "cytogeneticBand": "6q21",
+                "repeatUnit": null,
+                "repeatNumber": null,
+                "length": 20937,
+                "modesOfInheritance": [],
+                "sampleMetrics": [
+                  {
+                    "affectedStatus": "AFFECTED",
+                    "alleleDepth": null,
+                    "copyNumber": 1,
+                    "genotype": "0/1",
+                    "genotypeQuality": null,
+                    "pairedEndReadCount": null,
+                    "relationship": "PROBAND",
+                    "sampleId": "DEMO_002_BREAST_DNA",
+                    "splitReadCount": null,
+                    "totalDepth": null,
+                    "vrf": null,
+                    "zygosity": "Heterozygous",
+                    "smn1CN": null,
+                    "smn1AlleleDepth": null,
+                    "smn2CN": null,
+                    "smn2AlleleDepth": null,
+                    "carrierStatus": null,
+                    "supportingReads": null,
+                    "foldChange": 0.633712,
+                    "somaticStatus": "TUMOR",
+                    "somaticQuality": null,
+                    "lossOfHeterozygosity": false,
+                    "minorHaplotypeCopyNumber": 0
+                  }
+                ],
+                "variantReadFrequency": null,
+                "numberOfOverlappingGenes": 1,
+                "geneticFindings": [
+                  {
+                    "relationship": "PROBAND",
+                    "sampleId": "DEMO_002_BREAST_DNA",
+                    "affectedStatus": "AFFECTED"
+                  }
+                ],
+                "spliceAI": null,
+                "spliceAIScore": null,
+                "primateAI": [],
+                "maxPrimateAI": null,
+                "maxPli": 0.957,
+                "phylopScore": null,
+                "alleleCount": null,
+                "homozygoteCount": null,
+                "hemizygoteCount": null,
+                "frequencies": {},
+                "emedgene": null,
+                "mostSignificantPopFreq": null,
+                "dbsnp": null,
+                "smn1CN": null,
+                "smn2CN": null,
+                "associations": [
+                  {
+                    "id": "008b728e-80d8-437f-9f14-3c621cb0d64d",
+                    "creationDate": "2024-11-08T11:57:45.468Z",
+                    "updateDate": "2024-11-08T14:00:03.066Z",
+                    "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                    "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                    "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                    "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                    "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                    "associationId": "WVhkekxYVnpMWEJzWVhSbWIzSnRPakV3TURBeE9ETTBPalEyWVRZeE9HWTRMV1l6WWpjdE5HUmlZUzFpWTJKbExXUmtZbUUxTWpZeFltTXpNUTplYjE3OWQxOC1lOTRkLTRlMWItYmY5Yi04ZTk1MDU4MDI2ODM=",
+                    "associationVersion": "v1",
+                    "type": "Biological",
+                    "source": "My Knowledgebase",
+                    "visibility": "Visible",
+                    "actionabilityOrder": 1,
+                    "actionabilityBackgroundColor": "#DD203C",
+                    "actionabilityFontColor": "#FFFFFF",
+                    "actionabilityName": "Pathogenic",
+                    "tumorTypes": [
+                      {
+                        "id": "86250b06-eef0-41d1-9247-aefce618233e",
+                        "creationDate": "2024-11-05T12:40:46.281Z",
+                        "updateDate": "2024-11-05T12:40:46.281Z",
+                        "createdBy": "89cb3f10-5d97-3a65-a00a-eec9805f8abf",
+                        "updatedBy": "89cb3f10-5d97-3a65-a00a-eec9805f8abf",
+                        "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                        "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                        "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                        "name": "Malignant tumor of breast",
+                        "externalId": "254837009",
+                        "ontologyType": "SNOMEDCT",
+                        "version": "SNOMEDCT_US_2021_09_01",
+                        "clusters": null
+                      }
+                    ],
+                    "summary": "PATHOGENIC VARIANT ANALYSED BY RSW\nTEST\nNOT ACCURATE",
+                    "reportedByAutomation": false,
+                    "caseId": "07b44cad-2b84-44cb-9f84-a95488a7b645",
+                    "variantId": "6-106534426-106555363-C-<DEL>-CNV",
+                    "reportId": "5e273e88-db60-44bb-aef3-cec0dffe721a",
+                    "matchesSubjectDisease": true,
+                    "reportDate": "2024-11-08T14:14:14.958Z",
+                    "associationInfo": {
+                      "id": "WVhkekxYVnpMWEJzWVhSbWIzSnRPakV3TURBeE9ETTBPalEyWVRZeE9HWTRMV1l6WWpjdE5HUmlZUzFpWTJKbExXUmtZbUUxTWpZeFltTXpNUTplYjE3OWQxOC1lOTRkLTRlMWItYmY5Yi04ZTk1MDU4MDI2ODM=",
+                      "version": "v1",
+                      "type": "Biological",
+                      "source": "My Knowledgebase",
+                      "status": "Enabled",
+                      "visibility": "Visible",
+                      "actionabilityOrder": 1,
+                      "actionabilityBackgroundColor": "#DD203C",
+                      "actionabilityFontColor": "#FFFFFF",
+                      "actionabilityName": "Pathogenic",
+                      "hrd": null,
+                      "draftAssociationId": null,
+                      "direction": null,
+                      "confidence": null,
+                      "mechanism": null,
+                      "validationLevel": null,
+                      "curatorSummary": "PATHOGENIC VARIANT ANALYSED BY RSW\nTEST\nNOT ACCURATE",
+                      "curatorNotes": "TEST",
+                      "registryId": null,
+                      "registry": null,
+                      "externalLink": null,
+                      "phase": null,
+                      "locations": null,
+                      "contexts": [
+                        {
+                          "type": "Disease Indication",
+                          "name": "Neoplastic disease",
+                          "externalId": "55342001",
+                          "ontologyType": "SNOMEDCT",
+                          "version": "SNOMEDCT_US_2021_09_01",
+                          "clusters": [
+                            {
+                              "clusterId": "C1882062"
+                            }
+                          ],
+                          "ontologyGroupId": "55342001",
+                          "ontologyGroup": "SNOMEDCT",
+                          "ontologyVersion": "SNOMEDCT_US_2021_09_01"
+                        }
+                      ],
+                      "biomarkers": [
+                        {
+                          "type": "Copy Number Variant",
+                          "chromosome": "6",
+                          "start": 106534427,
+                          "stop": 106555363,
+                          "curationLevel": "Annotation Overlap",
+                          "vid": "6-106534426-106555363-C-<DEL>-CNV",
+                          "genomeBuild": "37",
+                          "variantType": "Copy Number Loss",
+                          "consequences": [],
+                          "cytogeneticBand": "6q21",
+                          "vepVersion": "91",
+                          "updateDate": "2024-11-08T11:57:45.334Z",
+                          "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                          "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                          "creationDate": "2024-11-08T11:57:45.334Z",
+                          "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                          "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                          "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ"
+                        }
+                      ],
+                      "evidences": [],
+                      "geneRoles": null,
+                      "approvalAuthorities": [],
+                      "reports": [],
+                      "creationDate": "2024-11-08T11:57:45.334Z",
+                      "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "updateDate": "2024-11-08T11:57:45.334Z",
+                      "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                      "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                      "matchesSubjectDisease": true,
+                      "submittedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "nodeName": "UK_east-glh_6000020919",
+                      "assignedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "assignedToName": "Robert Wilson",
+                      "draft": false,
+                      "assignedByName": "Robert Wilson",
+                      "domainName": "eval-uki",
+                      "criteriaList": [],
+                      "submittedDate": "2024-11-08T11:57:45.334Z",
+                      "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                      "assignedTo": "a5fbb4c9-f587-332e-a096-a46be14da609"
+                    }
+                  }
+                ],
+                "categories": [],
+                "customLabels": {
+                  "RegionLOH": {
+                    "source": "RegionLOH",
+                    "labels": [
+                      "LOH Region"
+                    ],
+                    "scores": [],
+                    "field": "RegionLOH"
+                  }
+                },
+                "germlineStatus": null,
+                "maxCosmic": null,
+                "maxCancerHotspotSample": null,
+                "supportingReads": null
+              },
+              {
+                "id": "b898ece7-23e6-4e99-a844-afadbcc8ca11",
+                "creationDate": "2024-11-08T14:13:11.068Z",
+                "updateDate": "2024-11-08T14:13:11.073Z",
+                "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                "variantId": "13-32912969-G-T",
+                "parentVariantId": null,
+                "linkedVariants": [],
+                "notes": null,
+                "status": "Enabled",
+                "gene": "BRCA2",
+                "geneDisplay": "BRCA2",
+                "chromosome": "13",
+                "start": 32912969,
+                "stop": 32912969,
+                "matchedEndChromosome": null,
+                "matchedEndPosition": null,
+                "refAllele": "G",
+                "altAllele": "T",
+                "foldChange": null,
+                "transcript": {
+                  "name": "NM_000059.4",
+                  "hgvsc": "c.4477G>T",
+                  "hgvsp": "p.(Glu1493Ter)",
+                  "exons": "11/27",
+                  "proteinId": "NP_000050.3",
+                  "aminoAcids": "E/*",
+                  "proteinPos": "1493",
+                  "consequences": [
+                    {
+                      "label": "Stop Gained",
+                      "consequence": "stop_gained"
+                    },
+                    {
+                      "label": "Loss of Function Variant",
+                      "consequence": "loss_of_function_variant"
+                    }
+                  ],
+                  "introns": null,
+                  "canonical": true,
+                  "preferred": false,
+                  "selected": false,
+                  "primateAI": null,
+                  "polyPhenScore": null,
+                  "polyPhenPrediction": null,
+                  "siftScore": null,
+                  "siftPrediction": null,
+                  "revelScore": null,
+                  "pli": 2.36e-25,
+                  "nspeciesAA": null,
+                  "geneFusions": null,
+                  "default": true
+                },
+                "zygosity": "Heterozygous",
+                "variantType": "SNV",
+                "variantCategory": "Small Variant",
+                "copyNumber": null,
+                "inheritedFrom": null,
+                "frequency": null,
+                "cytogeneticBand": "13q13.1",
+                "repeatUnit": null,
+                "repeatNumber": null,
+                "length": 1,
+                "modesOfInheritance": [],
+                "sampleMetrics": [
+                  {
+                    "affectedStatus": "AFFECTED",
+                    "alleleDepth": 68,
+                    "copyNumber": null,
+                    "genotype": "0/1",
+                    "genotypeQuality": null,
+                    "pairedEndReadCount": null,
+                    "relationship": "PROBAND",
+                    "sampleId": "DEMO_002_BREAST_DNA",
+                    "splitReadCount": null,
+                    "totalDepth": 186,
+                    "vrf": 0.3655914,
+                    "zygosity": "Heterozygous",
+                    "smn1CN": null,
+                    "smn1AlleleDepth": null,
+                    "smn2CN": null,
+                    "smn2AlleleDepth": null,
+                    "carrierStatus": null,
+                    "supportingReads": null,
+                    "foldChange": null,
+                    "somaticStatus": "TUMOR",
+                    "somaticQuality": 12.3,
+                    "lossOfHeterozygosity": false,
+                    "minorHaplotypeCopyNumber": null
+                  }
+                ],
+                "variantReadFrequency": 0.3655914,
+                "numberOfOverlappingGenes": 1,
+                "geneticFindings": [
+                  {
+                    "relationship": "PROBAND",
+                    "sampleId": "DEMO_002_BREAST_DNA",
+                    "affectedStatus": "AFFECTED"
+                  }
+                ],
+                "spliceAI": null,
+                "spliceAIScore": null,
+                "primateAI": [],
+                "maxPrimateAI": null,
+                "maxPli": 2.36e-25,
+                "phylopScore": 1.1,
+                "alleleCount": null,
+                "homozygoteCount": null,
+                "hemizygoteCount": null,
+                "frequencies": {},
+                "emedgene": null,
+                "mostSignificantPopFreq": null,
+                "dbsnp": [
+                  "rs398122782"
+                ],
+                "smn1CN": null,
+                "smn2CN": null,
+                "associations": [
+                  {
+                    "id": "c52645b2-243c-4f72-96bc-1a70730a390a",
+                    "creationDate": "2024-11-08T14:13:11.073Z",
+                    "updateDate": "2024-11-08T14:14:14.958Z",
+                    "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                    "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                    "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                    "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                    "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                    "associationId": "WVhkekxYVnpMWEJzWVhSbWIzSnRPakV3TURBeE9ETTBPalEyWVRZeE9HWTRMV1l6WWpjdE5HUmlZUzFpWTJKbExXUmtZbUUxTWpZeFltTXpNUTo5YWVlZTQ5Ny1lYmNlLTQ0ZGYtOTc4OC02ZjQxMDM0NDlkYjA=",
+                    "associationVersion": "v1",
+                    "type": "Biological",
+                    "source": "My Knowledgebase",
+                    "visibility": "Visible",
+                    "actionabilityOrder": 1,
+                    "actionabilityBackgroundColor": "#DD203C",
+                    "actionabilityFontColor": "#FFFFFF",
+                    "actionabilityName": "Oncogenic",
+                    "tumorTypes": [
+                      {
+                        "id": "86250b06-eef0-41d1-9247-aefce618233e",
+                        "creationDate": "2024-11-05T12:40:46.281Z",
+                        "updateDate": "2024-11-05T12:40:46.281Z",
+                        "createdBy": "89cb3f10-5d97-3a65-a00a-eec9805f8abf",
+                        "updatedBy": "89cb3f10-5d97-3a65-a00a-eec9805f8abf",
+                        "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                        "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                        "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                        "name": "Malignant tumor of breast",
+                        "externalId": "254837009",
+                        "ontologyType": "SNOMEDCT",
+                        "version": "SNOMEDCT_US_2021_09_01",
+                        "clusters": null
+                      }
+                    ],
+                    "summary": "Oncogenic RSW analysed.\nTEST THIS IS NOT AN ACTUAL ASSERTION.\n",
+                    "reportedByAutomation": false,
+                    "caseId": "07b44cad-2b84-44cb-9f84-a95488a7b645",
+                    "variantId": "13-32912969-G-T",
+                    "reportId": "5e273e88-db60-44bb-aef3-cec0dffe721a",
+                    "matchesSubjectDisease": true,
+                    "reportDate": "2024-11-08T14:14:14.958Z",
+                    "associationInfo": {
+                      "id": "WVhkekxYVnpMWEJzWVhSbWIzSnRPakV3TURBeE9ETTBPalEyWVRZeE9HWTRMV1l6WWpjdE5HUmlZUzFpWTJKbExXUmtZbUUxTWpZeFltTXpNUTo5YWVlZTQ5Ny1lYmNlLTQ0ZGYtOTc4OC02ZjQxMDM0NDlkYjA=",
+                      "version": "v1",
+                      "type": "Biological",
+                      "source": "My Knowledgebase",
+                      "status": "Enabled",
+                      "visibility": "Visible",
+                      "actionabilityOrder": 1,
+                      "actionabilityBackgroundColor": "#DD203C",
+                      "actionabilityFontColor": "#FFFFFF",
+                      "actionabilityName": "Oncogenic",
+                      "hrd": "Undetermined",
+                      "draftAssociationId": null,
+                      "direction": null,
+                      "confidence": null,
+                      "mechanism": null,
+                      "validationLevel": null,
+                      "curatorSummary": "Oncogenic RSW analysed.\nTEST THIS IS NOT AN ACTUAL ASSERTION.\n",
+                      "curatorNotes": "TEST",
+                      "registryId": null,
+                      "registry": null,
+                      "externalLink": null,
+                      "phase": null,
+                      "locations": null,
+                      "contexts": [
+                        {
+                          "type": "Disease Indication",
+                          "name": "Neoplastic disease",
+                          "externalId": "55342001",
+                          "ontologyType": "SNOMEDCT",
+                          "version": "SNOMEDCT_US_2021_09_01",
+                          "clusters": [
+                            {
+                              "clusterId": "C1882062"
+                            }
+                          ],
+                          "ontologyGroupId": "55342001",
+                          "ontologyGroup": "SNOMEDCT",
+                          "ontologyVersion": "SNOMEDCT_US_2021_09_01"
+                        }
+                      ],
+                      "biomarkers": [
+                        {
+                          "type": "Small Variant",
+                          "chromosome": "13",
+                          "position": "32912969",
+                          "start": 32912969,
+                          "stop": 32912969,
+                          "vcfRefAllele": "G",
+                          "vcfAltAllele": "T",
+                          "refAllele": "G",
+                          "altAllele": "T",
+                          "curationLevel": "Nucleotide",
+                          "vid": "13-32912969-G-T",
+                          "geneSymbol": "BRCA2",
+                          "ncbiGeneId": "675",
+                          "transcriptId": "NM_000059.4",
+                          "exon": "11/27",
+                          "aminoAcids": "E/*",
+                          "proteinPos": "1493",
+                          "hgvsc": "c.4477G>T",
+                          "hgvsp": "p.(Glu1493Ter)",
+                          "codon": "p.(Glu1493)",
+                          "genomeBuild": "37",
+                          "variantType": "SNV",
+                          "consequences": [
+                            {
+                              "type": "stop_gained",
+                              "label": "Stop Gained",
+                              "id": "5530c7f8-5384-413b-8bec-d735f71c044f",
+                              "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef"
+                            }
+                          ],
+                          "cytogeneticBand": "13q13.1",
+                          "vepVersion": "91",
+                          "equivalentTranscripts": [
+                            {
+                              "transcriptId": "ENST00000380152.3",
+                              "id": "10a37e54-c42c-41c2-86a7-0e7f326e823b"
+                            },
+                            {
+                              "transcriptId": "ENST00000544455.1",
+                              "id": "ddc27513-c7a9-47a2-944f-fea1d6ee9de1"
+                            }
+                          ],
+                          "updateDate": "2024-11-08T14:13:10.786Z",
+                          "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                          "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                          "vinId": "479535c7-c579-473b-9e36-8d6fc385ecc6",
+                          "creationDate": "2024-11-08T14:13:10.786Z",
+                          "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                          "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                          "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                          "transcriptStandard": "VEP_91_RefSeq",
+                          "transcriptType": "RefSeq",
+                          "vins": [
+                            {
+                              "build": "37",
+                              "vid": "13-32912969-G-T",
+                              "chromosome": null,
+                              "position": null,
+                              "start": null,
+                              "stop": null,
+                              "refAllele": null,
+                              "altAllele": null,
+                              "status": null,
+                              "statusMessage": null,
+                              "vinId": "479535c7-c579-473b-9e36-8d6fc385ecc6"
+                            },
+                            {
+                              "build": "38",
+                              "vid": "13-32338832-G-T",
+                              "chromosome": null,
+                              "position": null,
+                              "start": null,
+                              "stop": null,
+                              "refAllele": null,
+                              "altAllele": null,
+                              "status": null,
+                              "statusMessage": null,
+                              "vinId": "479535c7-c579-473b-9e36-8d6fc385ecc6"
+                            }
+                          ]
+                        }
+                      ],
+                      "evidences": [],
+                      "geneRoles": null,
+                      "approvalAuthorities": [],
+                      "reports": [],
+                      "creationDate": "2024-11-08T14:13:10.786Z",
+                      "createdBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "updateDate": "2024-11-08T14:13:10.786Z",
+                      "updatedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "nodeId": "e81b75ce-6e07-38e1-bdac-f3eab93f7a6e",
+                      "projectId": "b5a4e1e4-382b-49c0-8e32-e443025f97ef",
+                      "matchesSubjectDisease": true,
+                      "submittedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "nodeName": "UK_east-glh_6000020919",
+                      "assignedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                      "assignedToName": "Robert Wilson",
+                      "draft": false,
+                      "assignedByName": "Robert Wilson",
+                      "domainName": "eval-uki",
+                      "criteriaList": [],
+                      "submittedDate": "2024-11-08T14:13:10.786Z",
+                      "domainId": "YXdzLXVzLXBsYXRmb3JtOjEwMDAxODM0OjQ2YTYxOGY4LWYzYjctNGRiYS1iY2JlLWRkYmE1MjYxYmMzMQ",
+                      "assignedTo": "a5fbb4c9-f587-332e-a096-a46be14da609"
+                    }
+                  }
+                ],
+                "categories": [],
+                "customLabels": {},
+                "germlineStatus": "Suspected Somatic",
+                "maxCosmic": 1,
+                "maxCancerHotspotSample": null,
+                "supportingReads": null
+              }
+            ],
+            "reportId": "5e273e88-db60-44bb-aef3-cec0dffe721a",
+            "status": "Enabled",
+            "subState": "Reopened",
+            "caseId": "07b44cad-2b84-44cb-9f84-a95488a7b645",
+            "caseDisplayId": "DEMO_002_BREAST",
+            "testDefinitionId": "1b443614-6c63-4d73-964c-deaba994abd0",
+            "variantIndexId": "sl38vtfg9js",
+            "assignedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+            "assignedTo": "a5fbb4c9-f587-332e-a096-a46be14da609",
+            "name": "Default Report",
+            "updatedByName": "Robert Wilson",
+            "reportHistory": [
+              {
+                "status": "Final",
+                "notes": null,
+                "approvedByName": "Robert Wilson",
+                "approvedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                "approvedDate": "2024-11-08T14:00:03.066Z",
+                "version": 1
+              },
+              {
+                "status": "Final",
+                "notes": "Added SNVs",
+                "approvedByName": "Robert Wilson",
+                "approvedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+                "approvedDate": "2024-11-08T14:14:14.957Z",
+                "version": 2
+              }
+            ],
+            "reportTemplate": null,
+            "reportVersion": 2,
+            "reportType": "TSS_ONC_REPORT",
+            "reportedDate": "2024-11-08T14:14:14.958Z",
+            "reportLabel": null,
+            "editStatus": "Final",
+            "editNotes": "Added SNVs"
+          }
+        }
+      ],
+      "samples": [
+        {
+          "tumorType": [
+            {
+              "ontologytype": "SNOMEDCT",
+              "name": "Malignant tumor of breast",
+              "externalid": "254837009",
+              "version": "SNOMEDCT_US_2021_09_01",
+              "keyGenes": [
+                "BRAF",
+                "ERBB2",
+                "MET",
+                "PIK3CA"
+              ],
+              "clusterid": [
+                "C0006142"
+              ],
+              "customName": null,
+              "ancestors": [
+                {
+                  "name": "Malignant neoplastic disease",
+                  "clusters": [
+                    {
+                      "clusterId": "C0006826"
+                    }
+                  ],
+                  "externalId": "363346000",
+                  "ontologyType": "SNOMEDCT"
+                },
+                {
+                  "name": "Malignant neoplasm of thorax",
+                  "clusters": [
+                    {
+                      "clusterId": "C0153661"
+                    }
+                  ],
+                  "externalId": "188361007",
+                  "ontologyType": "SNOMEDCT"
+                },
+                {
+                  "name": "Neoplastic disease",
+                  "clusters": [
+                    {
+                      "clusterId": "C1882062"
+                    }
+                  ],
+                  "externalId": "55342001",
+                  "ontologyType": "SNOMEDCT"
+                },
+                {
+                  "name": "Neoplasm of trunk",
+                  "clusters": [
+                    {
+                      "clusterId": "C1290306"
+                    }
+                  ],
+                  "externalId": "126637008",
+                  "ontologyType": "SNOMEDCT"
+                },
+                {
+                  "name": "Neoplasm of thorax",
+                  "clusters": [
+                    {
+                      "clusterId": "C0039981"
+                    }
+                  ],
+                  "externalId": "255058005",
+                  "ontologyType": "SNOMEDCT"
+                },
+                {
+                  "name": "Neoplasm of breast",
+                  "clusters": [
+                    {
+                      "clusterId": "C1458155"
+                    }
+                  ],
+                  "externalId": "126926005",
+                  "ontologyType": "SNOMEDCT"
+                }
+              ]
+            }
+          ],
+          "updatedDate": null,
+          "externalSampleId": "DEMO_002_BREAST_DNA",
+          "id": "12f4f605-d6e8-4a6c-b69f-9f61d1d771f9",
+          "createdDate": null,
+          "externalSampleName": "DEMO_002_BREAST_DNA",
+          "msi": "1.92",
+          "tmb": "188.19",
+          "gis": "1",
+          "sampleType": "DNA",
+          "specimenType": null,
+          "pairId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3",
+          "purity": "0.790",
+          "ploidy": "2.02",
+          "sarjPath": null,
+          "customMetadata": {
+            "configData": []
+          },
+          "sampleClassification": "TUMOR"
+        },
+        {
+          "tumorType": [
+            {
+              "ontologytype": "SNOMEDCT",
+              "name": "Malignant tumor of breast",
+              "externalid": "254837009",
+              "version": "SNOMEDCT_US_2021_09_01",
+              "keyGenes": [
+                "BRAF",
+                "ERBB2",
+                "MET",
+                "PIK3CA"
+              ],
+              "clusterid": [
+                "C0006142"
+              ],
+              "customName": null,
+              "ancestors": [
+                {
+                  "name": "Malignant neoplastic disease",
+                  "clusters": [
+                    {
+                      "clusterId": "C0006826"
+                    }
+                  ],
+                  "externalId": "363346000",
+                  "ontologyType": "SNOMEDCT"
+                },
+                {
+                  "name": "Malignant neoplasm of thorax",
+                  "clusters": [
+                    {
+                      "clusterId": "C0153661"
+                    }
+                  ],
+                  "externalId": "188361007",
+                  "ontologyType": "SNOMEDCT"
+                },
+                {
+                  "name": "Neoplastic disease",
+                  "clusters": [
+                    {
+                      "clusterId": "C1882062"
+                    }
+                  ],
+                  "externalId": "55342001",
+                  "ontologyType": "SNOMEDCT"
+                },
+                {
+                  "name": "Neoplasm of trunk",
+                  "clusters": [
+                    {
+                      "clusterId": "C1290306"
+                    }
+                  ],
+                  "externalId": "126637008",
+                  "ontologyType": "SNOMEDCT"
+                },
+                {
+                  "name": "Neoplasm of thorax",
+                  "clusters": [
+                    {
+                      "clusterId": "C0039981"
+                    }
+                  ],
+                  "externalId": "255058005",
+                  "ontologyType": "SNOMEDCT"
+                },
+                {
+                  "name": "Neoplasm of breast",
+                  "clusters": [
+                    {
+                      "clusterId": "C1458155"
+                    }
+                  ],
+                  "externalId": "126926005",
+                  "ontologyType": "SNOMEDCT"
+                }
+              ]
+            }
+          ],
+          "updatedDate": null,
+          "externalSampleId": "DEMO_002_BREAST_RNA",
+          "id": "cbd5b10b-0e6b-426c-b20f-f5419872fdff",
+          "createdDate": null,
+          "externalSampleName": "DEMO_002_BREAST_RNA",
+          "msi": "1.92",
+          "tmb": "188.19",
+          "gis": "1",
+          "sampleType": "RNA",
+          "specimenType": null,
+          "pairId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3",
+          "purity": "0.790",
+          "ploidy": "2.02",
+          "sarjPath": null,
+          "customMetadata": {
+            "configData": []
+          },
+          "sampleClassification": "TUMOR"
+        }
+      ],
+      "isAffected": "AFFECTED",
+      "createdSystemVersion": null,
+      "relationshipToProband": "PROBAND",
+      "otherRelationshipToProband": null,
+      "customMetadata": {
+        "configData": [
+          {
+            "type": "Text",
+            "name": "Sample Name(s)",
+            "restricted": false,
+            "value": "SP-1234567",
+            "order": 5
+          }
+        ]
+      }
+    }
+  ],
+  "truSightSoftwareSuiteVersion": "5.0.0",
+  "dragenVersion": null,
+  "dataSourceVersions": "Illumina Connected Annotations 3.24.0 (Ensembl: 110; RefSeq: 105.20220307; ClinVar: 20231230; ClinVar: 20240301; dbSNP: 156; dbSNP: 151; GME: 20160618; gnomAD: 2.1; MITOMAP: 20200819; 1000 Genomes Project: Phase 3 v5a; PrimateAI: 0.2; REVEL: 20200205; TOPMed: freeze_5; COSMIC: 99; PrimateAI-3D: 1.0-ici; SpliceAI: 1.3; RegionLOH: DEMO_002_BREAST_DNA_abcn_genes_tsv_loh_processed.tsv; ClinGen: 20160414; ClinGen Dosage Sensitivity Map: 20240110; DECIPHER: 201509; gnomAD_SV: 2.1; MITOMAP_SV: 20200819; 1000 Genomes Project (SV): Phase 3 v5a; COSMIC gene fusions: 99; FusionCatcher: 1.33; DANN: 20200205; Gerp: 20110522; gnomAD_gene_scores: 2.1; ClinGen disease validity curations: 20240110; Cosmic Cancer Gene Census: 99; OMIM: 20240110; phyloP: hg19; gnomAD_LCR: 2.1; MitochondrialHeteroplasmy: 20180410; CancerHotspots: 2017)",
+  "variantIndexId": "sl38vtfg9js",
+  "selectedReportId": "5e273e88-db60-44bb-aef3-cec0dffe721a",
+  "reportDataVersion": 2,
+  "customMetadata": {
+    "configData": [
+      {
+        "type": "Text",
+        "name": "TestCustomCaseData",
+        "restricted": true,
+        "value": "R208.1",
+        "order": 1
+      },
+      {
+        "type": "Text",
+        "name": "First Checker",
+        "restricted": false,
+        "value": "Robert Wilson",
+        "order": 2
+      },
+      {
+        "type": "Text",
+        "name": "Primary analyst",
+        "restricted": false,
+        "value": "RSW",
+        "order": 3
+      },
+      {
+        "type": "Text",
+        "name": "Second checker",
+        "restricted": false,
+        "value": "RSW",
+        "order": 4
+      }
+    ]
+  },
+  "preferredQcMetrics": [
+    {
+      "sampleIds": [
+        "DEMO_002_BREAST_DNA",
+        "DEMO_002_BREAST_RNA"
+      ],
+      "analysisId": "TruSight_Oncology_500_Solid_HRD_20241105_132552_DEMO_002_BREAST_DNA_RNA_TSO500_V3",
+      "workflowType": "DNA+RNA",
+      "caseDisplayId": "DEMO_002_BREAST",
+      "qcMetrics": {
+        "runQcMetrics": {
+          "metrics": [
+            {
+              "metric": "% Reads Passing Filter",
+              "lsl": "80",
+              "usl": "NA",
+              "passStatus": "Pass",
+              "value": "87.1",
+              "sampleId": null
+            },
+            {
+              "metric": "% Q30 R1",
+              "lsl": "80",
+              "usl": "NA",
+              "passStatus": "Pass",
+              "value": "92.6",
+              "sampleId": null
+            },
+            {
+              "metric": "% Q30 R2",
+              "lsl": "80",
+              "usl": "NA",
+              "passStatus": "Pass",
+              "value": "91.8",
+              "sampleId": null
+            }
+          ]
+        },
+        "sampleQcMetrics": {
+          "sections": [
+            {
+              "sectionName": "DNA Library QC Metrics",
+              "metrics": [
+                {
+                  "metric": "Contamination Score",
+                  "lsl": "0",
+                  "usl": "1457",
+                  "passStatus": "Pass",
+                  "value": "130",
+                  "sampleId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3"
+                }
+              ]
+            },
+            {
+              "sectionName": "DNA Library QC Metrics for Small Variant Calling and TMB",
+              "metrics": [
+                {
+                  "metric": "Median Insert Size",
+                  "lsl": "70",
+                  "usl": "NA",
+                  "passStatus": "Pass",
+                  "value": "90",
+                  "sampleId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3"
+                },
+                {
+                  "metric": "Median Exon Coverage (Count)",
+                  "lsl": "150",
+                  "usl": "NA",
+                  "passStatus": "Pass",
+                  "value": "384",
+                  "sampleId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3"
+                },
+                {
+                  "metric": "% Exon 50X",
+                  "lsl": "90",
+                  "usl": "NA",
+                  "passStatus": "Pass",
+                  "value": "99.2",
+                  "sampleId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3"
+                }
+              ]
+            },
+            {
+              "sectionName": "DNA Library QC Metrics for MSI",
+              "metrics": [
+                {
+                  "metric": "Usable MSI Sites (Count)",
+                  "lsl": "40",
+                  "usl": "NA",
+                  "passStatus": "Pass",
+                  "value": "104",
+                  "sampleId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3"
+                }
+              ]
+            },
+            {
+              "sectionName": "DNA Library QC Metrics for CNV",
+              "metrics": [
+                {
+                  "metric": "Gene Scaled MAD (Count)",
+                  "lsl": "0.000",
+                  "usl": "0.134",
+                  "passStatus": "Pass",
+                  "value": "0.061",
+                  "sampleId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3"
+                },
+                {
+                  "metric": "Median Bin Count CNV Target",
+                  "lsl": "1",
+                  "usl": "NA",
+                  "passStatus": "Pass",
+                  "value": "4.7",
+                  "sampleId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3"
+                }
+              ]
+            },
+            {
+              "sectionName": "DNA Library QC Metrics for GIS",
+              "metrics": [
+                {
+                  "metric": "% Target HRD 50X",
+                  "lsl": "50",
+                  "usl": "NA",
+                  "passStatus": "Pass",
+                  "value": "99.7",
+                  "sampleId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3"
+                },
+                {
+                  "metric": "Excessive TF",
+                  "lsl": "NA",
+                  "usl": "0",
+                  "passStatus": "Pass",
+                  "value": "0",
+                  "sampleId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3"
+                }
+              ]
+            },
+            {
+              "sectionName": "RNA Library QC Metrics",
+              "metrics": [
+                {
+                  "metric": "Median Coverage Gene 500X",
+                  "lsl": "0.00",
+                  "usl": "0.93",
+                  "passStatus": "Pass",
+                  "value": "0.52",
+                  "sampleId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reportData": {
+    "localDates": {
+      "timezone": {
+        "name": "UTC",
+        "shortName": "UTC"
+      },
+      "reportUpdateDate": "2024-11-08T14:14:14.958"
+    },
+    "interpretationSummaryBegin": "Two Pathogenic variants\n",
+    "interpretationSummaryEnd": null,
+    "summaries": [
+      {
+        "name": "Interpretation Summary",
+        "value": "Two Pathogenic variants\n"
+      }
+    ],
+    "reportHistory": [
+      {
+        "status": "Final",
+        "notes": "Added SNVs",
+        "approvedByName": "Robert Wilson",
+        "approvedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+        "approvedDate": "2024-11-08T14:14:14.957Z",
+        "version": 2,
+        "approvedDateLocal": "2024-11-08T14:14:14.957"
+      },
+      {
+        "status": "Final",
+        "notes": null,
+        "approvedByName": "Robert Wilson",
+        "approvedBy": "a5fbb4c9-f587-332e-a096-a46be14da609",
+        "approvedDate": "2024-11-08T14:00:03.066Z",
+        "version": 1,
+        "approvedDateLocal": "2024-11-08T14:00:03.066"
+      }
+    ],
+    "biomarkersFindingsSummary": {
+      "findings": [
+        {
+          "name": "MYB",
+          "value": "Copy Number Loss",
+          "actionabilities": [
+            {
+              "actionabilityName": "Oncogenic",
+              "actionabilityColor": "#DD203C"
+            }
+          ],
+          "scoreStatus": [],
+          "hrd": [],
+          "sampleMetrics": {
+            "alleleDepth": null,
+            "totalDepth": null
+          },
+          "variantId": "6-135502649-135539115-G-<DEL>-CNV"
+        },
+        {
+          "name": "PRDM1",
+          "value": "Copy Number Loss",
+          "actionabilities": [
+            {
+              "actionabilityName": "Pathogenic",
+              "actionabilityColor": "#DD203C"
+            }
+          ],
+          "scoreStatus": [],
+          "hrd": [],
+          "sampleMetrics": {
+            "alleleDepth": null,
+            "totalDepth": null
+          },
+          "variantId": "6-106534426-106555363-C-<DEL>-CNV"
+        },
+        {
+          "name": "BRCA2",
+          "value": "p.(Glu1493Ter)",
+          "actionabilities": [
+            {
+              "actionabilityName": "Oncogenic",
+              "actionabilityColor": "#DD203C"
+            }
+          ],
+          "scoreStatus": [],
+          "hrd": [],
+          "sampleMetrics": {
+            "alleleDepth": 68,
+            "totalDepth": 186
+          },
+          "variantId": "13-32912969-G-T"
+        }
+      ],
+      "findingsWithoutVUS": [
+        {
+          "name": "MYB",
+          "value": "Copy Number Loss",
+          "actionabilities": [
+            {
+              "actionabilityName": "Oncogenic",
+              "actionabilityColor": "#DD203C"
+            }
+          ],
+          "scoreStatus": [],
+          "hrd": [],
+          "sampleMetrics": {
+            "alleleDepth": null,
+            "totalDepth": null
+          },
+          "variantId": "6-135502649-135539115-G-<DEL>-CNV"
+        },
+        {
+          "name": "PRDM1",
+          "value": "Copy Number Loss",
+          "actionabilities": [
+            {
+              "actionabilityName": "Pathogenic",
+              "actionabilityColor": "#DD203C"
+            }
+          ],
+          "scoreStatus": [],
+          "hrd": [],
+          "sampleMetrics": {
+            "alleleDepth": null,
+            "totalDepth": null
+          },
+          "variantId": "6-106534426-106555363-C-<DEL>-CNV"
+        },
+        {
+          "name": "BRCA2",
+          "value": "p.(Glu1493Ter)",
+          "actionabilities": [
+            {
+              "actionabilityName": "Oncogenic",
+              "actionabilityColor": "#DD203C"
+            }
+          ],
+          "scoreStatus": [],
+          "hrd": [],
+          "sampleMetrics": {
+            "alleleDepth": 68,
+            "totalDepth": 186
+          },
+          "variantId": "13-32912969-G-T"
+        }
+      ],
+      "hereditaryRisk": []
+    },
+    "biomarkersFindings": [
+      {
+        "name": "MYB",
+        "value": "Copy Number Loss",
+        "actionabilities": [
+          {
+            "actionabilityName": "Oncogenic",
+            "actionabilityColor": "#DD203C"
+          }
+        ],
+        "scoreStatus": [],
+        "hrd": [],
+        "sampleMetrics": {
+          "alleleDepth": null,
+          "totalDepth": null
+        },
+        "variantId": "6-135502649-135539115-G-<DEL>-CNV",
+        "variantTranscript": {},
+        "metrics": [
+          {
+            "value": "Copy number: 1"
+          },
+          {
+            "value": "Fold change: 0.64877"
+          }
+        ],
+        "geneInformation": [],
+        "biologicalActionabilities": [
+          {
+            "curatorSummaries": [
+              "Pathogenic variant analysed by RSW\nTEST\nNOT ACCURATE ASSERTION"
+            ]
+          }
+        ],
+        "biologicalActionabilityDetails": [
+          {
+            "curatorSummaries": [
+              "Pathogenic variant analysed by RSW\nTEST\nNOT ACCURATE ASSERTION"
+            ],
+            "actionabilityName": "Oncogenic",
+            "actionabilityColor": "#DD203C",
+            "matchesSubjectDisease": true
+          }
+        ],
+        "otherActionabilities": [],
+        "otherActionabilityDetails": [],
+        "assertions": [
+          {
+            "id": "WVhkekxYVnpMWEJzWVhSbWIzSnRPakV3TURBeE9ETTBPalEyWVRZeE9HWTRMV1l6WWpjdE5HUmlZUzFpWTJKbExXUmtZbUUxTWpZeFltTXpNUTo2NmUzZjhiOC0zM2RhLTQyYzAtYjY0MS03M2IyZmY1Yjk5YzQ=",
+            "version": "v1",
+            "type": "Biological",
+            "source": "My Knowledgebase",
+            "actionabilityOrder": 1,
+            "actionabilityBackgroundColor": "#DD203C",
+            "actionabilityFontColor": "#FFFFFF",
+            "actionabilityName": "Oncogenic",
+            "hrd": null,
+            "direction": null,
+            "confidence": null,
+            "mechanism": null,
+            "validationLevel": null,
+            "curatorSummary": "Pathogenic variant analysed by RSW\nTEST\nNOT ACCURATE ASSERTION",
+            "curatorNotes": "TEST",
+            "registryId": null,
+            "registry": null,
+            "externalLink": null,
+            "phase": null,
+            "locations": [],
+            "contexts": [
+              {
+                "type": "Disease Indication",
+                "name": "Neoplastic disease",
+                "externalId": "55342001",
+                "ontologyType": "SNOMEDCT",
+                "version": "SNOMEDCT_US_2021_09_01",
+                "clusters": [
+                  {
+                    "clusterId": "C1882062"
+                  }
+                ],
+                "ontologyGroupId": "55342001",
+                "ontologyGroup": "SNOMEDCT",
+                "ontologyVersion": "SNOMEDCT_US_2021_09_01"
+              }
+            ],
+            "geneRoles": null,
+            "approvalAuthorities": [],
+            "matchesSubjectDisease": true
+          }
+        ]
+      },
+      {
+        "name": "PRDM1",
+        "value": "Copy Number Loss",
+        "actionabilities": [
+          {
+            "actionabilityName": "Pathogenic",
+            "actionabilityColor": "#DD203C"
+          }
+        ],
+        "scoreStatus": [],
+        "hrd": [],
+        "sampleMetrics": {
+          "alleleDepth": null,
+          "totalDepth": null
+        },
+        "variantId": "6-106534426-106555363-C-<DEL>-CNV",
+        "variantTranscript": {},
+        "metrics": [
+          {
+            "value": "Copy number: 1"
+          },
+          {
+            "value": "Fold change: 0.633712"
+          }
+        ],
+        "geneInformation": [],
+        "biologicalActionabilities": [
+          {
+            "curatorSummaries": [
+              "PATHOGENIC VARIANT ANALYSED BY RSW\nTEST\nNOT ACCURATE"
+            ]
+          }
+        ],
+        "biologicalActionabilityDetails": [
+          {
+            "curatorSummaries": [
+              "PATHOGENIC VARIANT ANALYSED BY RSW\nTEST\nNOT ACCURATE"
+            ],
+            "actionabilityName": "Pathogenic",
+            "actionabilityColor": "#DD203C",
+            "matchesSubjectDisease": true
+          }
+        ],
+        "otherActionabilities": [],
+        "otherActionabilityDetails": [],
+        "assertions": [
+          {
+            "id": "WVhkekxYVnpMWEJzWVhSbWIzSnRPakV3TURBeE9ETTBPalEyWVRZeE9HWTRMV1l6WWpjdE5HUmlZUzFpWTJKbExXUmtZbUUxTWpZeFltTXpNUTplYjE3OWQxOC1lOTRkLTRlMWItYmY5Yi04ZTk1MDU4MDI2ODM=",
+            "version": "v1",
+            "type": "Biological",
+            "source": "My Knowledgebase",
+            "actionabilityOrder": 1,
+            "actionabilityBackgroundColor": "#DD203C",
+            "actionabilityFontColor": "#FFFFFF",
+            "actionabilityName": "Pathogenic",
+            "hrd": null,
+            "direction": null,
+            "confidence": null,
+            "mechanism": null,
+            "validationLevel": null,
+            "curatorSummary": "PATHOGENIC VARIANT ANALYSED BY RSW\nTEST\nNOT ACCURATE",
+            "curatorNotes": "TEST",
+            "registryId": null,
+            "registry": null,
+            "externalLink": null,
+            "phase": null,
+            "locations": [],
+            "contexts": [
+              {
+                "type": "Disease Indication",
+                "name": "Neoplastic disease",
+                "externalId": "55342001",
+                "ontologyType": "SNOMEDCT",
+                "version": "SNOMEDCT_US_2021_09_01",
+                "clusters": [
+                  {
+                    "clusterId": "C1882062"
+                  }
+                ],
+                "ontologyGroupId": "55342001",
+                "ontologyGroup": "SNOMEDCT",
+                "ontologyVersion": "SNOMEDCT_US_2021_09_01"
+              }
+            ],
+            "geneRoles": null,
+            "approvalAuthorities": [],
+            "matchesSubjectDisease": true
+          }
+        ]
+      },
+      {
+        "name": "BRCA2",
+        "value": "p.(Glu1493Ter)",
+        "actionabilities": [
+          {
+            "actionabilityName": "Oncogenic",
+            "actionabilityColor": "#DD203C"
+          }
+        ],
+        "scoreStatus": [],
+        "hrd": [],
+        "sampleMetrics": {
+          "alleleDepth": 68,
+          "totalDepth": 186
+        },
+        "variantId": "13-32912969-G-T",
+        "readFrequency": "0.3655914",
+        "variantTranscript": {
+          "name": "NM_000059.4",
+          "chromosome": "chr13:32912969",
+          "consequences": [
+            "Stop Gained",
+            "Loss of Function Variant"
+          ],
+          "hgvsc": "c.4477G>T",
+          "refAllele": "G",
+          "altAllele": "T"
+        },
+        "geneInformation": [],
+        "biologicalActionabilities": [
+          {
+            "curatorSummaries": [
+              "Oncogenic RSW analysed.\nTEST THIS IS NOT AN ACTUAL ASSERTION.\n"
+            ]
+          }
+        ],
+        "biologicalActionabilityDetails": [
+          {
+            "curatorSummaries": [
+              "Oncogenic RSW analysed.\nTEST THIS IS NOT AN ACTUAL ASSERTION.\n"
+            ],
+            "actionabilityName": "Oncogenic",
+            "actionabilityColor": "#DD203C",
+            "matchesSubjectDisease": true
+          }
+        ],
+        "otherActionabilities": [],
+        "otherActionabilityDetails": [],
+        "assertions": [
+          {
+            "id": "WVhkekxYVnpMWEJzWVhSbWIzSnRPakV3TURBeE9ETTBPalEyWVRZeE9HWTRMV1l6WWpjdE5HUmlZUzFpWTJKbExXUmtZbUUxTWpZeFltTXpNUTo5YWVlZTQ5Ny1lYmNlLTQ0ZGYtOTc4OC02ZjQxMDM0NDlkYjA=",
+            "version": "v1",
+            "type": "Biological",
+            "source": "My Knowledgebase",
+            "actionabilityOrder": 1,
+            "actionabilityBackgroundColor": "#DD203C",
+            "actionabilityFontColor": "#FFFFFF",
+            "actionabilityName": "Oncogenic",
+            "hrd": "Undetermined",
+            "direction": null,
+            "confidence": null,
+            "mechanism": null,
+            "validationLevel": null,
+            "curatorSummary": "Oncogenic RSW analysed.\nTEST THIS IS NOT AN ACTUAL ASSERTION.\n",
+            "curatorNotes": "TEST",
+            "registryId": null,
+            "registry": null,
+            "externalLink": null,
+            "phase": null,
+            "locations": [],
+            "contexts": [
+              {
+                "type": "Disease Indication",
+                "name": "Neoplastic disease",
+                "externalId": "55342001",
+                "ontologyType": "SNOMEDCT",
+                "version": "SNOMEDCT_US_2021_09_01",
+                "clusters": [
+                  {
+                    "clusterId": "C1882062"
+                  }
+                ],
+                "ontologyGroupId": "55342001",
+                "ontologyGroup": "SNOMEDCT",
+                "ontologyVersion": "SNOMEDCT_US_2021_09_01"
+              }
+            ],
+            "geneRoles": null,
+            "approvalAuthorities": [],
+            "matchesSubjectDisease": true
+          }
+        ]
+      }
+    ],
+    "biomarkersNoFindings": {
+      "predictive": [
+        {
+          "name": "TMB",
+          "value": "188.2 mut/MB"
+        },
+        {
+          "name": "GIS",
+          "value": "Score 1.0"
+        },
+        {
+          "name": "MSI",
+          "value": "1.9% unstable sites"
+        }
+      ],
+      "genes": [
+        "BRAF",
+        "ERBB2",
+        "MET",
+        "PIK3CA"
+      ]
+    },
+    "therapies": [],
+    "prognostic": [],
+    "diagnostic": [],
+    "vus": [],
+    "findingsByClassification": [],
+    "clinicalTrials": [],
+    "qcMetrics": [
+      {
+        "name": "% Reads Passing Filter",
+        "value": "87.1",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "% Q30 R1",
+        "value": "92.6",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "% Q30 R2",
+        "value": "91.8",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "DNA Library QC Metrics - Contamination Score",
+        "value": "130",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "DNA Library QC Metrics for Small Variant Calling and TMB - Median Insert Size",
+        "value": "90",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "DNA Library QC Metrics for Small Variant Calling and TMB - Median Exon Coverage (Count)",
+        "value": "384",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "DNA Library QC Metrics for Small Variant Calling and TMB - % Exon 50X",
+        "value": "99.2",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "DNA Library QC Metrics for MSI - Usable MSI Sites (Count)",
+        "value": "104",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "DNA Library QC Metrics for CNV - Gene Scaled MAD (Count)",
+        "value": "0.061",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "DNA Library QC Metrics for CNV - Median Bin Count CNV Target",
+        "value": "4.7",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "DNA Library QC Metrics for GIS - % Target HRD 50X",
+        "value": "99.7",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "DNA Library QC Metrics for GIS - Excessive TF",
+        "value": "0",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      },
+      {
+        "name": "RNA Library QC Metrics - Median Coverage Gene 500X",
+        "value": "0.52",
+        "passStatus": "Pass",
+        "color": "#17A628"
+      }
+    ],
+    "methodology": {
+      "workflowName": "DRAGEN TruSight Oncology 500 Analysis Software v2.5.2 (with HRD)",
+      "assayDescription": "[DRAFT METHODOLOGY IS PROVIDED BASED ON GENERIC DOCUMENTATION FOR TWO OR MORE SEPARATE PRODUCTS. USERS NEED TO UPDATE THE METHODOLOGY AND GENE LISTS AS RELEVANT TO THEIR TEST]\n\nThe test was performed using the Illumina TruSight Oncology 500 HRD targeted enrichment sequencing assay including a DNA based panel covering 523 genes and an RNA based panel covering 55 genes. Single nucleotide variants (SNVs), insertions, deletions, copy number variants (CNV), exon-level CNVs, multinucleotide variants (MNVs), tumor mutational burden (TMB), microsatellite instability (MSI), and genomic Instability Score (GIS) were detected from DNA. Fusions and splice variants were detected from RNA.\n\nVariant calling was performed by DRAGEN TruSight Oncology 500 Analysis Software against human genome build GRCh37.\n\nTumor mutational burden (TMB) was calculated as a number of mutations per megabase (mut/Mb) of the panel. Microsatellite instability (MSI) status was determined through interrogating 130 MSI marker sites and calculating the percentage of unstable sites.\n\nTo detect Genomic Instability Score (GIS), TruSight Oncology 500 HRD included ~25K genome-wide probes designed to assess for 3 genomic scars (loss of heterozygosity (LOH), telomeric-allelic imbalance (TAI), and large-scale state transitions (LST)) across a broad range of ethnicities. Myriad Genetics GIS algorithm was used to calculate the genomic scars and the resultant GIS.\n\nIdentified variants were annotated using Illumina Connected Annotations and a set of sources including JAX Clinical Knowledgebase (JAX-CKB), OncoKB, COSMIC, ClinVar, CancerHotspots, gnomAD, and others. Variants were prioritized and interpreted based on information from drug labels, clinical practice guidelines, publicly available databases, and peer-reviewed literature. Variants were classified using the AMP/ASCO/CAP guidelines on interpretation of sequence variants in cancer (Li et al., 2017) into four tiers: variants of strong clinical significance (Tier I), potential clinical significance (Tier II), unknown clinical significance (Tier III) and benign or likely benign variants (Tier IV).",
+      "assayGeneListText": "Gene List for DNA variants:\nABL1, ABL2, ACVR1, ACVR1B, AKT1, AKT2, AKT3, ALK, ALOX12B, ANKRD11, ANKRD26, APC, AR, ARAF, ARFRP1, ARID1A, ARID1B, ARID2, ARID5B, ASXL1, ASXL2, ATM, ATR, ATRX, AURKA, AURKB, AXIN1, AXIN2, AXL, B2M, BAP1, BARD1, BBC3, BCL10, BCL2, BCL2L1, BCL2L11, BCL2L2, BCL6, BCOR, BCORL1, BCR, BIRC3, BLM, BMPR1A, BRAF, BRCA1, BRCA2, BRD4, BRIP1, BTG1, BTK, C11orf30, CALR, CARD11, CASP8, CBFB, CBL, CCND1, CCND2, CCND3, CCNE1, CD274, CD276, CD74, CD79A, CD79B, CDC73, CDH1, CDK12, CDK4, CDK6, CDK8, CDKN1A, CDKN1B, CDKN2A, CDKN2B, CDKN2C, CEBPA, CENPA, CHD2, CHD4, CHEK1, CHEK2, CIC, CREBBP, CRKL, CRLF2, CSF1R, CSF3R, CSNK1A1, CTCF, CTLA4, CTNNA1, CTNNB1, CUL3, CUX1, CXCR4, CYLD, DAXX, DCUN1D1, DDR2, DDX41, DHX15, DICER1, DIS3, DNAJB1, DNMT1, DNMT3A, DNMT3B, DOT1L, E2F3, EED, EGFL7, EGFR, EIF1AX, EIF4A2, EIF4E, EML4, EP300, EPCAM, EPHA3, EPHA5, EPHA7, EPHB1, ERBB2, ERBB3, ERBB4, ERCC1, ERCC2, ERCC3, ERCC4, ERCC5, ERG, ERRFI1, ESR1, ETS1, ETV1, ETV4, ETV5, ETV6, EWSR1, EZH2, FAM123B, FAM175A, FAM46C, FANCA, FANCC, FANCD2, FANCE, FANCF, FANCG, FANCI, FANCL, FAS, FAT1, FBXW7, FGF1, FGF10, FGF14, FGF19, FGF2, FGF23, FGF3, FGF4, FGF5, FGF6, FGF7, FGF8, FGF9, FGFR1, FGFR2, FGFR3, FGFR4, FH, FLCN, FLI1, FLT1, FLT3, FLT4, FOXA1, FOXL2, FOXO1, FOXP1, FRS2, FUBP1, FYN, GABRA6, GATA1, GATA2, GATA3, GATA4, GATA6, GEN1, GID4, GLI1, GNA11, GNA13, GNAQ, GNAS, GPR124, GPS2, GREM1, GRIN2A, GRM3, GSK3B, H3F3A, H3F3B, H3F3C, HGF, HIST1H1C, HIST1H2BD, HIST1H3A, HIST1H3B, HIST1H3C, HIST1H3D, HIST1H3E, HIST1H3F, HIST1H3G, HIST1H3H, HIST1H3I, HIST1H3J, HIST2H3A, HIST2H3C, HIST2H3D, HIST3H3, HLA-A, HLA-B, HLA-C, HNF1A, HNRNPK, HOXB13, HRAS, HSD3B1, HSP90AA1, ICOSLG, ID3, IDH1, IDH2, IFNGR1, IGF1, IGF1R, IGF2, IKBKE, IKZF1, IL10, IL7R, INHA, INHBA, INPP4A, INPP4B, INSR, IRF2, IRF4, IRS1, IRS2, JAK1, JAK2, JAK3, JUN, KAT6A, KDM5A, KDM5C, KDM6A, KDR, KEAP1, KEL, KIF5B, KIT, KLF4, KLHL6, KMT2B, KMT2C, KMT2D, KRAS, LAMP1, LATS1, LATS2, LMO1, LRP1B, LYN, LZTR1, MAGI2, MALT1, MAP2K1, MAP2K2, MAP2K4, MAP3K1, MAP3K13, MAP3K14, MAP3K4, MAPK1, MAPK3, MAX, MCL1, MDC1, MDM2, MDM4, MED12, MEF2B, MEN1, MET, MGA, MITF, MLH1, MLL, MLLT3, MPL, MRE11A, MSH2, MSH3, MSH6, MST1, MST1R, MTOR, MUTYH, MYB, MYC, MYCL1, MYCN, MYD88, MYOD1, NAB2, NBN, NCOA3, NCOR1, NEGR1, NF1, NF2, NFE2L2, NFKBIA, NKX2-1, NKX3-1, NOTCH1, NOTCH2, NOTCH3, NOTCH4, NPM1, NRAS, NRG1, NSD1, NTRK1, NTRK2, NTRK3, NUP93, NUTM1, PAK1, PAK3, PAK7, PALB2, PARK2, PARP1, PAX3, PAX5, PAX7, PAX8, PBRM1, PDCD1, PDCD1LG2, PDGFRA, PDGFRB, PDK1, PDPK1, PGR, PHF6, PHOX2B, PIK3C2B, PIK3C2G, PIK3C3, PIK3CA, PIK3CB, PIK3CD, PIK3CG, PIK3R1, PIK3R2, PIK3R3, PIM1, PLCG2, PLK2, PMAIP1, PMS1, PMS2, PNRC1, POLD1, POLE, PPARG, PPM1D, PPP2R1A, PPP2R2A, PPP6C, PRDM1, PREX2, PRKAR1A, PRKCI, PRKDC, PRSS8, PTCH1, PTEN, PTPN11, PTPRD, PTPRS, PTPRT, QKI, RAB35, RAC1, RAD21, RAD50, RAD51, RAD51B, RAD51C, RAD51D, RAD52, RAD54L, RAF1, RANBP2, RARA, RASA1, RB1, RBM10, RECQL4, REL, RET, RFWD2, RHEB, RHOA, RICTOR, RIT1, RNF43, ROS1, RPS6KA4, RPS6KB1, RPS6KB2, RPTOR, RUNX1, RUNX1T1, RYBP, SDHA, SDHAF2, SDHB, SDHC, SDHD, SETBP1, SETD2, SF3B1, SH2B3, SH2D1A, SHQ1, SLIT2, SLX4, SMAD2, SMAD3, SMAD4, SMARCA4, SMARCB1, SMARCD1, SMC1A, SMC3, SMO, SNCAIP, SOCS1, SOX10, SOX17, SOX2, SOX9, SPEN, SPOP, SPTA1, SRC, SRSF2, STAG1, STAG2, STAT3, STAT4, STAT5A, STAT5B, STK11, STK40, SUFU, SUZ12, SYK, TAF1, TBX3, TCEB1, TCF3, TCF7L2, TERC, TERTa, TET1, TET2, TFE3, TFRC, TGFBR1, TGFBR2, TMEM127, TMPRSS2, TNFAIP3, TNFRSF14, TOP1, TOP2A, TP53, TP63, TRAF2, TRAF7, TSC1, TSC2, TSHR, U2AF1, VEGFA, VHL, VTCN1, WISP3, WT1, XIAP, XPO1, XRCC2, YAP1, YES1, ZBTB2, ZBTB7A, ZFHX3, ZNF217, ZNF703, ZRSR2\nCNVs are not called in HIST2H3A, HIST2H3C, HLA-A, HLA-B, HLA-C, KMT2B, KMT2C, KMT2D, TERT. Large rearrangements (exon-level CNVs) detected for BRCA1 and BRCA2. For the TERT gene, only promoter region is covered for variant calling.\n\nGene List for RNA variants:\nABL1, AKT3, ALK, AR, AXL, BCL2, BRAF, BRCA1, BRCA2, CDK4, CSF1R, EGFR, EML4, ERBB2, ERG, ESR1, ETS1, ETV1, ETV4, ETV5, EWSR1, FGFR1, FGFR2, FGFR3, FGFR4, FLI1, FLT1, FLT3, JAK2, KDR, KIF5B, KIT, MET, MLL, MLLT3, MSH2, MYC, NOTCH1, NOTCH2, NOTCH3, NRG1, NTRK1, NTRK2, NTRK3, PAX3, PAX7, PDGFRA, PDGFRB, PIK3CA, PPARG, RAF1, RET, ROS1, RPS6KB1, TMPRSS2"
+    },
+    "supplementalInformation": {
+      "applicationVersion": "5.0.0"
+    },
+    "reportLabels": {
+      "report": "Report",
+      "disease": "Disease",
+      "caseInformation": "Case information",
+      "subjectInformation": "Subject information",
+      "interpretationSummaryMsg": "Interpretation summary",
+      "interpretationSummaryMsgV2": "Interpretation Summary",
+      "interpretationSummaryCont": "Interpretation summary, continued",
+      "genomicBiomarkers": "Genomic biomarkers",
+      "therapies": "Therapies",
+      "prognostic": "Prognostic",
+      "diagnostic": "Diagnostic",
+      "clinicalTrials": "Clinical trials",
+      "clinicalTrialsV2": "Clinical Trials",
+      "genomicBiomarkerDetails": "Genomic biomarker details",
+      "available": "Available",
+      "caseId": "Case ID",
+      "reported": "Reported",
+      "workflow": "Workflow",
+      "genomeBuild": "Genome build",
+      "genomeBuildV2": "Genome Build",
+      "sex": "Sex",
+      "specimenType": "Specimen type",
+      "qcMetrics": "QC metrics",
+      "qcMetricsV2": "QC Metrics",
+      "qcMetricsCont": "QC metrics, continued",
+      "qcMetricsContinuedOn": "Continued after Diagnostic section",
+      "noSummaryProvided": "Not provided",
+      "findings": "Findings",
+      "hereditaryRisk": "Hereditary Risk",
+      "hereditaryRiskFinding": "Hereditary Risk Finding",
+      "hereditaryRiskFindings": "Hereditary Risk Findings",
+      "vus": "Variants of uncertain significance (VUS)",
+      "gbTableFooter": "*Contains disease related genes only.",
+      "gbVusAvailable": "Variants of uncertain significance are detected and listed at the end of the report.",
+      "therapyInSubjectDisease": "Therapy in subject disease",
+      "therapyInOtherDiseases": "Therapy in other diseases",
+      "biomarker": "Biomarker",
+      "prognosisInSubjectDisease": "Prognosis in subject disease",
+      "prognosisInOtherDiseases": "Prognosis in other diseases",
+      "diagnosisInSubjectDisease": "Diagnosis in subject disease",
+      "diagnosisInOtherDiseases": "Diagnosis in other diseases",
+      "title": "Title",
+      "phase": "Phase",
+      "location": "Location",
+      "presentInSubject": "present in subject",
+      "responsive": "Responsive",
+      "nonResponsive": "Non-Responsive",
+      "contraindicated": "Contraindicated",
+      "favorable": "Favorable",
+      "unfavorable": "Unfavorable",
+      "nothingReported": "Nothing reported",
+      "nothingReportedV2": "Nothing Reported",
+      "yesSeeSection": "Yes, see section",
+      "continuedOn": "Continued after Clinical trials table",
+      "score": "Score",
+      "foldChange": "Fold change",
+      "copyNumber": "Copy number",
+      "unstableSites": "unstable sites",
+      "pageNumberText": "Page <span class=\"pageNumber\"></span> of <span class=\"totalPages\"></span>",
+      "exonSkipping": "Exon {0} skipping",
+      "id": "ID",
+      "yes": "Yes",
+      "fusion": "Fusion",
+      "supplementalInformation": "Supplemental information",
+      "supplementalInformationV2": "Supplemental Information",
+      "smallVariantsHeading": "Small Variants",
+      "smallVariantsDescription": "Small variants (insertions, deletions, single nucleotide variants [SNV], and multiple nucleotide variants [MNV]) are detected from DNA.",
+      "copyNumberVariantsHeading": "Copy Number Variants",
+      "copyNumberVariantsDescription": "Copy number variants are detected from DNA and reflect a gain in the number of copies of a gene.",
+      "geneFusionsHeading": "Gene Fusions",
+      "geneFusionsDescription": "Gene fusions are detected from RNA and occur when portions of two genes are translated together into a novel RNA product.",
+      "spliceVariantsHeading": "Splice Variants",
+      "spliceVariantsDescription": "Splice variants are detected from RNA and are represented by two breakpoints, the associated gene, and affected exon(s) in that gene, as applicable.",
+      "tumorMutationalBurdenHeading": "Tumor Mutational Burden",
+      "tumorMutationalBurdenDescription": "A measurement of the number of somatic mutations carried by tumor cells per megabase in the coding region.",
+      "microSatelliteHeading": "Microsatellite Instability",
+      "microSatelliteDescription": "Microsatellite instability is based on an assessment of the fraction of genomic sites found to be unstable (shown as a percentage).",
+      "geneList": "Gene List",
+      "keyGenes": "Key Genes",
+      "systemVersion": "System Version",
+      "dataSourceVersions": "Data Source Versions",
+      "supportingReads": "Supporting reads",
+      "notAvailable": "Not available",
+      "scoreStatus": {
+        "High": "High",
+        "Low": "Low",
+        "Stable": "Stable"
+      },
+      "sexValues": {
+        "FEMALE": "Female",
+        "MALE": "Male",
+        "UNKNOWN": "Unknown"
+      },
+      "reportHistory": "Report history",
+      "reportHistoryV2": "Report History",
+      "version": "Version",
+      "approvedBy": "Approved by",
+      "approvedByOn": "on",
+      "notApproved": "Not approved",
+      "editReason": "Edit reason",
+      "notProvided": "Not provided",
+      "draft": "DRAFT",
+      "none": "None",
+      "splice": "Splice",
+      "PASS": "Pass",
+      "FAIL": "Fail",
+      "geneInformation": "Gene Information",
+      "biological": "Biological",
+      "actionability": "Actionability",
+      "vaf": "VAF",
+      "gene": "Gene",
+      "variantDetails": "Variant details",
+      "additionalFindings": "Additional Findings",
+      "vus2": "Uncertain Significance (VUS)",
+      "genomeWideBiomarkers": "Genome-wide Biomarkers",
+      "caseInfo": "Case Information",
+      "tmb": "Tumor Mutational Burden (TMB)",
+      "msi": "Microsatellite Instability (MSI)",
+      "gis": "Genomic Instability Score (GIS)",
+      "methodology": "Methodology",
+      "assayDescription": "Assay Description",
+      "assayGeneList": "Assay Gene List",
+      "seeFindingsSection": "See \"Findings\" section for assertion details",
+      "additionalAssertionsMsg1": "additional assertion(s) reported at",
+      "additionalAssertionsMsg2": "actionability listed later in report.",
+      "systemVersionSuffix": "For Research Use Only. Not for use in diagnostic procedures.",
+      "biomarkerDetails": "Biomarker Details",
+      "emptyCuratorSummaryCountMsg": "assertion(s) without a curator summary."
+    },
+    "tumorSample": {
+      "tumorType": [
+        {
+          "ontologytype": "SNOMEDCT",
+          "name": "Malignant tumor of breast",
+          "externalid": "254837009",
+          "version": "SNOMEDCT_US_2021_09_01",
+          "keyGenes": [
+            "BRAF",
+            "ERBB2",
+            "MET",
+            "PIK3CA"
+          ],
+          "clusterid": [
+            "C0006142"
+          ],
+          "customName": null,
+          "ancestors": [
+            {
+              "name": "Malignant neoplastic disease",
+              "clusters": [
+                {
+                  "clusterId": "C0006826"
+                }
+              ],
+              "externalId": "363346000",
+              "ontologyType": "SNOMEDCT"
+            },
+            {
+              "name": "Malignant neoplasm of thorax",
+              "clusters": [
+                {
+                  "clusterId": "C0153661"
+                }
+              ],
+              "externalId": "188361007",
+              "ontologyType": "SNOMEDCT"
+            },
+            {
+              "name": "Neoplastic disease",
+              "clusters": [
+                {
+                  "clusterId": "C1882062"
+                }
+              ],
+              "externalId": "55342001",
+              "ontologyType": "SNOMEDCT"
+            },
+            {
+              "name": "Neoplasm of trunk",
+              "clusters": [
+                {
+                  "clusterId": "C1290306"
+                }
+              ],
+              "externalId": "126637008",
+              "ontologyType": "SNOMEDCT"
+            },
+            {
+              "name": "Neoplasm of thorax",
+              "clusters": [
+                {
+                  "clusterId": "C0039981"
+                }
+              ],
+              "externalId": "255058005",
+              "ontologyType": "SNOMEDCT"
+            },
+            {
+              "name": "Neoplasm of breast",
+              "clusters": [
+                {
+                  "clusterId": "C1458155"
+                }
+              ],
+              "externalId": "126926005",
+              "ontologyType": "SNOMEDCT"
+            }
+          ]
+        }
+      ],
+      "updatedDate": null,
+      "externalSampleId": "DEMO_002_BREAST_DNA",
+      "id": "12f4f605-d6e8-4a6c-b69f-9f61d1d771f9",
+      "createdDate": null,
+      "externalSampleName": "DEMO_002_BREAST_DNA",
+      "msi": "1.92",
+      "tmb": "188.19",
+      "gis": "1",
+      "sampleType": "DNA",
+      "specimenType": null,
+      "pairId": "DEMO_002_BREAST_DNA_RNA_TSO500_V3",
+      "purity": "0.790",
+      "ploidy": "2.02",
+      "sarjPath": null,
+      "customMetadata": {
+        "configData": []
+      },
+      "sampleClassification": "TUMOR"
+    }
+  }
+}
