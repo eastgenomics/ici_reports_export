@@ -95,13 +95,14 @@ def get_collected_errors():
     return error_collector.error_logs
 
 
-def send_outcome_notification():
+def send_outcome_notification(args):
     """
     Send a notification to Slack with the collected errors.
 
     Parameters
     ----------
-    None
+    args : argparse.Namespace
+        The arguments from the command line.
 
     Returns
     -------
@@ -117,6 +118,7 @@ def send_outcome_notification():
     case_errors = []
     runtime_errors = []
     other_errors = []
+    slack_client = SlackClient()
 
     # Sort errors into categories
     for error in errors:
@@ -161,13 +163,25 @@ def send_outcome_notification():
 
         notification = "\n".join(notification_parts)
         print("\n--- Sending Error Notification ---")
-        slack_client = SlackClient()
-        slack_client.post_message(message=notification, channel="alerts")
+        if args.testing:
+            slack_client.post_message(
+                message=notification,
+                channel="log"
+            )
+        else:
+            slack_client.post_message(
+                message=notification,
+                channel="alerts"
+            )
     else:
-        slack_client = SlackClient()
-        slack_client.post_message(
-            message="Ici-report-export script ran successfully.", channel="log")
-        print("No errors to notify.")
+        if args.testing:
+            slack_client.post_message(
+                message=(
+                    "No errors to notify. ICI report export script ran successfully."
+                ),
+                channel="log"
+            )
+        logger.info("No errors to notify.")
 
 
 def parse_args():
@@ -200,6 +214,14 @@ def parse_args():
                         action='store_true',
                         default=False,
                         help='Run the script in testing mode.')
+    parser.add_argument('--single_report',
+                        action='store_true',
+                        default=False,
+                        help='Run the script in single report mode (ignores date arguments).')
+    parser.add_argument('--case_id',
+                        type=str,
+                        default=None,
+                        help='Case ID for a single report (required when --single_report is used).')
     args = parser.parse_args()
 
     # Validate inputs
@@ -210,6 +232,15 @@ def parse_args():
         args.created_after, "created_after"
     )
 
+    # Single mode logic for processing a single report
+    if args.single_report:
+        if not args.case_id:
+            logger.error("Single report mode requires a case_id to be specified.")
+            raise ValueError("Single report mode requires a case_id to be specified.")
+        logger.info("Single report mode selected. Date arguments are ignored.")
+        return args
+
+    # Date range logic
     if created_after_dt_obj is not None and created_before_dt_obj is not None:
         epoch_seconds_before = int(created_before_dt_obj.timestamp())
         epoch_seconds_after = int(created_after_dt_obj.timestamp())
@@ -1156,9 +1187,6 @@ def check_failed_audit_logs(matched_reports, search_directory='/home/rswilson1/D
         logger.info("Correct number of reports generated.")
         logger.info(
             f"Excel files generated today: {excel_files_generated_today}")
-        slack_client = SlackClient()
-        slack_client.post_message(
-            message="Correct number of reports generated.", channel="log")
 
     return matched_reports_count, report_names
 
@@ -1239,67 +1267,78 @@ def main():
             raise RuntimeError(
                 "Missing DESTINATION_DIRECTORY environment variable."
             )
-        # Check if the user has provided a start time
-        if not args.created_before and not args.created_after:
-            # No set created_before and no set created_after times
-            # Use the previous start time and current start time
-            created_before = current_start_time
-            created_after = previous_start_time
-        elif args.created_before and args.created_after:
-            # Both created_before and created_after are set
-            # Use the provided times
-            created_before = args.created_before
-            created_after = args.created_after
-        elif args.created_before and not args.created_after:
-            # Only created_before is set
-            # Use the provided created_before time and set created_after to None
-            created_before = args.created_before
-            created_after = None
-        elif not args.created_before and args.created_after:
-            # Only created_after is set
-            # Use the provided created_after time and set created_before to None
-            created_before = None
-            created_after = args.created_after
-        else:
-            logger.error(
-                "Runtime Error: Invalid combination of created_before and created_after arguments."
+
+        if args.single_report:
+            report_json = get_report(base_url, setup_api_headers(api_key, x_illumina_workgroup), args.case_id)
+            if not report_json:
+                logger.info(f"No single report found for case ID {args.case_id}")
+                matched_reports = []
+            else:
+                matched_reports = [report_json]
+                sample_id, case_info, snvs_variants_info, cnvs_variants_info, indels_variants_info, tmb_msi_metric_info = extract_data_from_report_json(report_json)
+                json_extract_to_excel(
+                    sample_id,
+                    case_info,
+                    snvs_variants_info,
+                    cnvs_variants_info,
+                    indels_variants_info,
+                    tmb_msi_metric_info,
+                    output_directory
                 )
-
-        # Setup API headers
-        headers = setup_api_headers(api_key, x_illumina_workgroup)
-        # Execute script
-        logger.info("Script execution started.")
-        audit_logs = get_audit_logs(base_url, headers,
-                                    case_status_updated_event,
-                                    audit_log_endpoint,
-                                    created_after=created_after,
-                                    created_before=created_before,
-                                    page_size=api_page_size
-                                    )
-
-        if audit_logs:
-            logger.info("Audit logs fetched successfully.")
-            matched_reports = process_reports_and_generate_excel(
-                audit_logs, base_url, headers, report_pattern,
-                output_directory
-            )
-            num_reports, report_names = check_failed_audit_logs(matched_reports,
-                                                                output_directory)
-            print(f"Number of reports generated: {num_reports}")
-            # print report names individually
-            print("Report names:")
-            for report_name in report_names:
-                print(report_name)
+                check_failed_audit_logs(matched_reports, output_directory)
         else:
-            logger.info("No relevant audit logs found.")
+            if not args.created_before and not args.created_after:
+                created_before = current_start_time
+                created_after = previous_start_time
+            elif args.created_before and args.created_after:
+                created_before = args.created_before
+                created_after = args.created_after
+            elif args.created_before and not args.created_after:
+                created_before = args.created_before
+                created_after = None
+            elif not args.created_before and args.created_after:
+                created_before = None
+                created_after = args.created_after
+            else:
+                logger.error("Runtime Error: Invalid combination of created_before and created_after arguments.")
+
+            headers = setup_api_headers(api_key, x_illumina_workgroup)
+            logger.info("Script execution started.")
+            audit_logs = get_audit_logs(
+                base_url,
+                headers,
+                case_status_updated_event,
+                audit_log_endpoint,
+                created_after=created_after,
+                created_before=created_before,
+                page_size=api_page_size
+            )
+
+            if audit_logs:
+                logger.info("Audit logs fetched successfully.")
+                matched_reports = process_reports_and_generate_excel(
+                    audit_logs, base_url, headers, report_pattern, output_directory
+                )
+                num_reports, report_names = check_failed_audit_logs(matched_reports, output_directory)
+                print(f"Number of reports generated: {num_reports}")
+                print("Report names:")
+                for report_name in report_names:
+                    print(report_name)
+            else:
+                logger.info("No relevant audit logs found.")
 
         if args.mv_reports:
-            # Move reports to ClinGen directory
             source_dir = output_directory
-            if num_reports == 0:
-                logger.info(f"No reports to move to {destination_directory}")
+            if not args.single_report:
+                if len(matched_reports) == 0:
+                    logger.info(f"No reports to move to {destination_directory}")
+                else:
+                    move_reports(source_dir, destination_directory, dry_run=args.testing)
             else:
-                move_reports(source_dir, destination_directory, dry_run=args.testing)
+                if len(matched_reports) == 0:
+                    logger.info(f"No reports to move to {destination_directory}")
+                else:
+                    move_reports(source_dir, destination_directory, dry_run=args.testing)
         else:
             logger.info("--mv_reports not set so not moving reports")
 
@@ -1310,7 +1349,6 @@ def main():
         raise
 
     finally:
-        # Always Trigger the notification
         send_outcome_notification()
 
 

@@ -21,8 +21,8 @@ class SlackClient:
                 f"Missing required environment variables: {', '.join(missing_vars)}")
         load_dotenv()  # Load environment variables
         self.webhooks = {
+            "alerts": os.getenv("SLACK_ALERTS_WEBHOOK"),
             "log": os.getenv("SLACK_LOG_WEBHOOK"),
-            "alerts": os.getenv("SLACK_ALERTS_WEBHOOK")
         }
 
     def post_message(self, message, channel) -> None:
