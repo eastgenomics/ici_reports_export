@@ -1329,15 +1329,14 @@ def main():
 
         if args.mv_reports:
             source_dir = output_directory
-            if not args.single_report:
-                if len(matched_reports) == 0:
-                    logger.info(f"No reports to move to {destination_directory}")
-                else:
-                    move_reports(source_dir, destination_directory, dry_run=args.testing)
+            if len(matched_reports) == 0:
+                logger.info(f"No reports to move to {destination_directory}")
             else:
-                if len(matched_reports) == 0:
-                    logger.info(f"No reports to move to {destination_directory}")
+                if args.single_report:
+                    logger.info(f"Moving single report to {destination_directory}")
+                    move_reports(source_dir, destination_directory, dry_run=args.testing)
                 else:
+                    logger.info(f"Moving reports to {destination_directory}")
                     move_reports(source_dir, destination_directory, dry_run=args.testing)
         else:
             logger.info("--mv_reports not set so not moving reports")
