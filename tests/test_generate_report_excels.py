@@ -35,7 +35,8 @@ def mock_args():
         mock_parse_args.return_value = argparse.Namespace(
             created_before="2024-01-01T08:30:00Z",
             created_after="2023-01-01T08:30:00Z",
-            override_report_pattern="test_pattern"
+            override_report_pattern="test_pattern",
+            single_report=False,
         )
         yield mock_parse_args
 
@@ -118,6 +119,7 @@ class TestParseArguments():
             mock_parse_args.return_value = argparse.Namespace(
                 created_before=created_before,
                 created_after=created_after,
+                single_report=False,
             )
             args = parse_args()
             assert args.created_before == created_before
@@ -138,6 +140,7 @@ class TestParseArguments():
             mock_parse_args.return_value = argparse.Namespace(
                 created_before=created_before,
                 created_after=created_after,
+                single_report=False,
             )
             with raises(ValueError):
                 _args = parse_args()
@@ -340,62 +343,109 @@ class TestApiCalls():
 
 
 class TestSendOutcomeNotification(unittest.TestCase):
+
     @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
-    def test_no_errors(self, mock_get_collected_errors, mock_slack_post_message):
-
+    @patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+        created_before=None, created_after=None, single_report=False, testing=True
+    ))
+    def test_no_errors(self, mock_parse_args, mock_get_collected_errors, mock_slack_post_message):
+        mock_args = mock_parse_args.return_value
+        print(mock_args)
+        print(mock_args.testing)
         mock_get_collected_errors.return_value = []
-        with self.capture_stdout() as stdout:
-            send_outcome_notification()
-        output = stdout.getvalue()
-        mock_slack_post_message.assert_called_once_with(message="Ici-report-export script ran successfully.",
+
+        send_outcome_notification(mock_args)
+
+        mock_slack_post_message.assert_called_once_with(message="No errors to notify. ICI report export script ran successfully.",
                                                         channel="log")
-        self.assertIn("No errors to notify.", output)
 
     @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
-    def test_runtime_errors(self, mock_get_collected_errors, mock_slack_post_message):
-
+    @patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+        created_before=None, created_after=None, single_report=False, testing=False
+    ))
+    def test_runtime_errors(self, mock_parse_args, mock_get_collected_errors, mock_slack_post_message):
+        mock_args = mock_parse_args.return_value
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Runtime Error: Some reports were not generated."
         ]
         expected_notification = ":gear: **Runtime Errors:**\nRuntime Error: Some reports were not generated."
-        send_outcome_notification()
+        send_outcome_notification(mock_args)
         mock_slack_post_message.assert_called_once_with(message=expected_notification,
                                                         channel="alerts")
 
-    @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
-    def test_case_errors(self, mock_get_collected_errors, mock_slack_post_message):
+    @patch('utils.notify_slack.SlackClient.post_message')
+    @patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+        created_before=None, created_after=None, single_report=False, testing=False
+    ))
+    def test_case_errors(self, mock_parse_args, mock_slack_post_message, mock_get_collected_errors):
+        mock_args = mock_parse_args.return_value
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Case ID 12345 not found"
         ]
         expected_notification = ":x: **Case Errors:**\nCase ID 12345 not found"
-        send_outcome_notification()
+        send_outcome_notification(mock_args)
         mock_slack_post_message.assert_called_once_with(message=expected_notification,
                                                         channel="alerts")
 
     @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
-    def test_variant_errors(self, mock_get_collected_errors, mock_slack_post_message):
+    @patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+        created_before=None, created_after=None, single_report=False, testing=False
+    ))
+    def test_variant_errors(self, mock_parse_args, mock_get_collected_errors, mock_slack_post_message):
+        mock_args = mock_parse_args.return_value
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Unknown variant type: XYZ"
         ]
         expected_notification = ":x: **Variant Errors:**\nUnknown variant type: XYZ"
-        send_outcome_notification()
+        send_outcome_notification(mock_args)
         mock_slack_post_message.assert_called_once_with(message=expected_notification,
                                                         channel="alerts")
 
+
     @patch('utils.notify_slack.SlackClient.post_message')
     @patch('generate_report_excels.get_collected_errors')
-    def test_other_errors(self, mock_get_collected_errors, mock_slack_post_message):
+    @patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+        created_before=None, created_after=None, single_report=False, testing=False
+    ))
+    def test_other_errors(self, mock_parse_args, mock_get_collected_errors, mock_slack_post_message):
+        mock_args = mock_parse_args.return_value
         mock_get_collected_errors.return_value = [
             "2025-02-07 13:53:42,140 - ERROR - Some other error occurred"
         ]
         expected_notification = ":exclamation: **Other Errors:**\nSome other error occurred"
-        send_outcome_notification()
+        send_outcome_notification(mock_args)
         mock_slack_post_message.assert_called_once_with(message=expected_notification,
                                                         channel="alerts")
+
+
+    @patch('utils.notify_slack.SlackClient.post_message')
+    @patch('generate_report_excels.get_collected_errors')
+    @patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
+        created_before=None,
+        created_after=None,
+        single_report=False,
+        testing=False
+    ))
+    def test_runtime_errors_2(self, mock_parse_args, mock_get_collected_errors, mock_slack_post_message):
+        mock_get_collected_errors.return_value = [
+            "2025-02-07 13:53:42,140 - ERROR - Runtime Error: Some reports were not generated."
+        ]
+        mock_args = mock_parse_args.return_value
+
+        expected_notification = (
+            ":gear: **Runtime Errors:**\nRuntime Error: Some reports were not generated."
+        )
+
+        send_outcome_notification(mock_args)
+
+        mock_slack_post_message.assert_called_once_with(
+            message=expected_notification,
+            channel="alerts"
+        )
 
     @contextmanager
     def capture_stdout(self):

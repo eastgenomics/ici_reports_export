@@ -727,7 +727,9 @@ def extract_variant_data(report_json):
 
             # Get consequences from associations
             consequences = select_association_consequences(associations)
-
+            # Get cytoband
+            cytoband = variant.get("cytogeneticBand", "N/A")
+            # Get oncogenicity from associations
             oncogenicity_list = [
                 assoc.get("actionabilityName", "N/A") for assoc in associations
             ]
@@ -737,6 +739,7 @@ def extract_variant_data(report_json):
                 "Gene": gene,
                 "Fold Change": fold_change,
                 "Transcript": transcript,
+                "Cytoband": cytoband,
                 "Oncogenicity": oncogenicity,
                 "Consequences": consequences,
             }
@@ -1084,8 +1087,10 @@ def json_extract_to_excel(sample_id, case_info,
         "Gene",
         "Consequence",
         "Transcript",
+        "Cytoband",
         "Estimated copy number",
         "Tier",
+        "Oncogenicity",
         " ",  # Gap column
         "Fold Change",
     ]
@@ -1348,7 +1353,7 @@ def main():
         raise
 
     finally:
-        send_outcome_notification()
+        send_outcome_notification(args)
 
 
 if __name__ == "__main__":
