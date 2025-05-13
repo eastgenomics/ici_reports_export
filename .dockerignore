@@ -12,3 +12,4 @@ appdata/
 *.csv
 *.json
 *.xml
+output/
