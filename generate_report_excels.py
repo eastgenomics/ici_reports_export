@@ -1085,7 +1085,7 @@ def json_extract_to_excel(sample_id, case_info,
     # Desired columns order for CNVs
     desired_columns = [
         "Gene",
-        "Consequence",
+        "Consequences",
         "Transcript",
         "Cytoband",
         "Estimated copy number",
