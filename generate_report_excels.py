@@ -1273,11 +1273,12 @@ def main():
                 "Missing DESTINATION_DIRECTORY environment variable."
             )
 
+        matched_reports = []
+
         if args.single_report:
             report_json = get_report(base_url, setup_api_headers(api_key, x_illumina_workgroup), args.case_id)
             if not report_json:
                 logger.info(f"No single report found for case ID {args.case_id}")
-                matched_reports = []
             else:
                 matched_reports = [report_json]
                 sample_id, case_info, snvs_variants_info, cnvs_variants_info, indels_variants_info, tmb_msi_metric_info = extract_data_from_report_json(report_json)
