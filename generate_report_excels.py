@@ -405,7 +405,10 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
                               "case.report.added", "/als/api/v1/auditlogs/search")
     """
     logger.info("Fetching audit logs from ICI API.")
-    url = f"{base_url}{endpoint}"
+    # Ensure base_url doesn't end with slash when endpoint starts with slash
+    base_url_sanitized = base_url[:-1] if base_url.endswith('/') and endpoint.startswith('/') else base_url
+    url = f"{base_url_sanitized}{endpoint}"
+
     logger.info("Audit logs URL: %s", url)
     params = {
         "eventName": event_name,
