@@ -322,8 +322,13 @@ def log_start_time(start_time_file, args):
 
     # Validate the previous start time
     try:
-        previous_start_time = dt.datetime.strptime(
-            previous_start_time, "%Y-%m-%dT%H:%M:%SZ")
+        logger.info(f"Previous start time read from file: {previous_start_time}")
+        previous_start_time_validation = bool(dt.datetime.strptime(
+            previous_start_time, "%Y-%m-%dT%H:%M:%SZ"))
+        if not previous_start_time_validation:
+            logger.warning(
+            "Invalid previous start time format in the log file.")
+            previous_start_time = None
     except ValueError:
         logger.warning(
             "Invalid previous start time format in the log file.")
@@ -378,7 +383,7 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
         i.e. "case.status.updated" or "case.report.added"
     endpoint : str
         The ICI API endpoint to fetch audit logs.
-        i.e. als/api/v1/auditlogs/search
+        i.e. /als/api/v1/auditlogs/search
     created_before : str
         The date string in the format YYYY-MM-DD'T'HH:MM:SS'Z'
         e.g: 2024-01-01T08:30:00Z to filter reports created before this date.
@@ -397,10 +402,11 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
     Examples
     --------
     >>> logs = get_audit_logs("https://api.ici.example.com", headers,
-                              "case.report.added", "als/api/v1/auditlogs/search")
+                              "case.report.added", "/als/api/v1/auditlogs/search")
     """
     logger.info("Fetching audit logs from ICI API.")
     url = f"{base_url}{endpoint}"
+    logger.info("Audit logs URL: %s", url)
     params = {
         "eventName": event_name,
         "toDate": created_before,
@@ -420,6 +426,7 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
         session.mount('http://', adapter)
         session.mount('https://', adapter)
         response = session.get(url, headers=headers, params=params)
+        logger.info(f"response url: {response.url}")
         response.raise_for_status()
         if response.status_code == 200:
             logger.debug(f"Audit logs response: {response.json()}")
@@ -463,7 +470,7 @@ def get_report(base_url, headers, case_id):
     'completed'
     """
     logger.info("Fetching report for case ID: %s", case_id)
-    url = f"{base_url}drs/v1/draftreport/case/{case_id}/reportjson"
+    url = f"{base_url}/drs/v1/draftreport/case/{case_id}/reportjson"
 
     try:
         session = requests.Session()
