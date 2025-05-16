@@ -473,7 +473,8 @@ def get_report(base_url, headers, case_id):
     'completed'
     """
     logger.info("Fetching report for case ID: %s", case_id)
-    url = f"{base_url}/drs/v1/draftreport/case/{case_id}/reportjson"
+    sanitized_base_url = base_url[:-1] if base_url.endswith('/') else base_url
+    url = f"{sanitized_base_url}/drs/v1/draftreport/case/{case_id}/reportjson"
 
     try:
         session = requests.Session()
