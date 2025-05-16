@@ -633,7 +633,7 @@ class TestLogStartTime(unittest.TestCase):
         """
         mock_args = MagicMock(created_before=None, created_after=None)
         prev_time, current_time = log_start_time("fake_path.log", mock_args)
-        self.assertIsInstance(prev_time, dt.datetime, "prev_time should be a datetime object.")
+        self.assertEqual(prev_time, "2023-01-01T10:00:00Z", "prev_time should match the file content.")
         self.assertIsNotNone(current_time, "current_time should not be None.")
         mock_file.assert_any_call("fake_path.log", 'r')  # Read existing
         mock_file.assert_any_call("fake_path.log", 'w')  # Write new
