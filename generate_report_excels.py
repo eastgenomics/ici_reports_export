@@ -321,17 +321,12 @@ def log_start_time(start_time_file, args):
         return None, current_start_time
 
     # Validate the previous start time
+    logger.info(f"Previous start time read from file: {previous_start_time}")
     try:
-        logger.info(f"Previous start time read from file: {previous_start_time}")
-        previous_start_time_validation = bool(dt.datetime.strptime(
-            previous_start_time, "%Y-%m-%dT%H:%M:%SZ"))
-        if not previous_start_time_validation:
-            logger.warning(
-            "Invalid previous start time format in the log file.")
-            previous_start_time = None
+    # Just validate format without storing the datetime object
+        dt.datetime.strptime(previous_start_time, "%Y-%m-%dT%H:%M:%SZ")
     except ValueError:
-        logger.warning(
-            "Invalid previous start time format in the log file.")
+        logger.warning("Invalid previous start time format in the log file.")
         previous_start_time = None
 
     # Write the current start time to the file
