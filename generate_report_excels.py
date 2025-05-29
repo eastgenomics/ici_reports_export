@@ -235,8 +235,10 @@ def parse_args():
     # Single mode logic for processing a single report
     if args.single_report:
         if not args.case_id:
-            logger.error("Single report mode requires a case_id to be specified.")
-            raise ValueError("Single report mode requires a case_id to be specified.")
+            logger.error(
+                "Single report mode requires a case_id to be specified.")
+            raise ValueError(
+                "Single report mode requires a case_id to be specified.")
         logger.info("Single report mode selected. Date arguments are ignored.")
         return args
 
@@ -323,7 +325,7 @@ def log_start_time(start_time_file, args):
     # Validate the previous start time
     logger.info(f"Previous start time read from file: {previous_start_time}")
     try:
-    # Just validate format without storing the datetime object
+        # Just validate format without storing the datetime object
         dt.datetime.strptime(previous_start_time, "%Y-%m-%dT%H:%M:%SZ")
     except ValueError:
         logger.warning("Invalid previous start time format in the log file.")
@@ -401,7 +403,8 @@ def get_audit_logs(base_url, headers, event_name, endpoint,
     """
     logger.info("Fetching audit logs from ICI API.")
     # Ensure base_url doesn't end with slash when endpoint starts with slash
-    base_url_sanitized = base_url[:-1] if base_url.endswith('/') and endpoint.startswith('/') else base_url
+    base_url_sanitized = base_url[:-1] if base_url.endswith(
+        '/') and endpoint.startswith('/') else base_url
     url = f"{base_url_sanitized}{endpoint}"
 
     logger.info("Audit logs URL: %s", url)
@@ -1239,7 +1242,8 @@ def move_reports(source_dir, dest_dir, dry_run=False):
         )
         logging.info("Reports moved successfully: %s", result.stdout.decode())
     except subprocess.CalledProcessError as e:
-        logging.error("Failed to move reports using mv_reports.sh: %s", e.stderr.decode())
+        logging.error(
+            "Failed to move reports using mv_reports.sh: %s", e.stderr.decode())
 
 
 def main():
@@ -1282,12 +1286,15 @@ def main():
         matched_reports = []
 
         if args.single_report:
-            report_json = get_report(base_url, setup_api_headers(api_key, x_illumina_workgroup), args.case_id)
+            report_json = get_report(base_url, setup_api_headers(
+                api_key, x_illumina_workgroup), args.case_id)
             if not report_json:
-                logger.info(f"No single report found for case ID {args.case_id}")
+                logger.info(
+                    f"No single report found for case ID {args.case_id}")
             else:
                 matched_reports = [report_json]
-                sample_id, case_info, snvs_variants_info, cnvs_variants_info, indels_variants_info, tmb_msi_metric_info = extract_data_from_report_json(report_json)
+                sample_id, case_info, snvs_variants_info, cnvs_variants_info, indels_variants_info, tmb_msi_metric_info = extract_data_from_report_json(
+                    report_json)
                 json_extract_to_excel(
                     sample_id,
                     case_info,
@@ -1312,7 +1319,8 @@ def main():
                 created_before = None
                 created_after = args.created_after
             else:
-                logger.error("Runtime Error: Invalid combination of created_before and created_after arguments.")
+                logger.error(
+                    "Runtime Error: Invalid combination of created_before and created_after arguments.")
 
             headers = setup_api_headers(api_key, x_illumina_workgroup)
             logger.info("Script execution started.")
@@ -1331,7 +1339,8 @@ def main():
                 matched_reports = process_reports_and_generate_excel(
                     audit_logs, base_url, headers, report_pattern, output_directory
                 )
-                num_reports, report_names = check_failed_audit_logs(matched_reports, output_directory)
+                num_reports, report_names = check_failed_audit_logs(
+                    matched_reports, output_directory)
                 print(f"Number of reports generated: {num_reports}")
                 print("Report names:")
                 for report_name in report_names:
@@ -1345,11 +1354,14 @@ def main():
                 logger.info(f"No reports to move to {destination_directory}")
             else:
                 if args.single_report:
-                    logger.info(f"Moving single report to {destination_directory}")
-                    move_reports(source_dir, destination_directory, dry_run=args.testing)
+                    logger.info(
+                        f"Moving single report to {destination_directory}")
+                    move_reports(source_dir, destination_directory,
+                                 dry_run=args.testing)
                 else:
                     logger.info(f"Moving reports to {destination_directory}")
-                    move_reports(source_dir, destination_directory, dry_run=args.testing)
+                    move_reports(source_dir, destination_directory,
+                                 dry_run=args.testing)
         else:
             logger.info("--mv_reports not set so not moving reports")
 
