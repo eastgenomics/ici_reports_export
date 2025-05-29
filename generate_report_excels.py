@@ -729,7 +729,12 @@ def extract_variant_data(report_json):
                     f"Case Error ({case_id}): Fold change not present for variant"
                 )
 
-            gene = variant.get("gene", "N/A")
+            overlapping_genes = variant.get("overlappingGenes", [])
+            # join string and list to new f string.
+            if len(overlapping_genes) == 0 or overlapping_genes is None:
+                gene_symbols = variant.get("gene", "N/A")
+            else:
+                gene_symbols = ", ".join(overlapping_genes)
 
             transcript = variant.get("transcript", {}).get("name", "N/A")
             associations = variant.get("associations", [])
@@ -745,7 +750,7 @@ def extract_variant_data(report_json):
             oncogenicity_list = set(oncogenicity_list)
             oncogenicity = ", ".join(oncogenicity_list)
             variant_info = {
-                "Gene": gene,
+                "Gene": gene_symbols,
                 "Fold Change": fold_change,
                 "Transcript": transcript,
                 "Cytoband": cytoband,
@@ -754,7 +759,12 @@ def extract_variant_data(report_json):
             }
             cnvs_variants_info.append(variant_info)
         elif re.search(r"Insertion|Deletion|Delins|MNV", variant_type, re.IGNORECASE):
-            gene = variant.get("gene", "N/A")
+            overlapping_genes = variant.get("overlappingGenes", [])
+            # join string and list to new f string.
+            if len(overlapping_genes) == 0 or overlapping_genes is None:
+                gene_symbols = variant.get("gene", "N/A")
+            else:
+                gene_symbols = ", ".join(overlapping_genes)
             transcript = variant.get("transcript", {}).get("name", "N/A")
             hgvsc = variant.get(
                 "transcript", {}).get("hgvsc", "N/A")
@@ -786,7 +796,7 @@ def extract_variant_data(report_json):
             oncogenicity = ", ".join(oncogenicity_list)
 
             variant_info = {
-                "Gene": gene,
+                "Gene": gene_symbols,
                 "Consequences": consequences,
                 "Transcript": transcript,
                 "DNA": hgvsc,
